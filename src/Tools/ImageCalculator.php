@@ -15,7 +15,7 @@ class ImageCalculator {
 			$targHeight = (int) round($targWidth / $origWidth * $origHeight);
 		} elseif($targWidth === null && $targHeight !== null) {
 			$targWidth = (int) round($targHeight / $origHeight * $origWidth);
-		} else {
+		} elseif($targWidth === null && $targHeight === null) {
 			// No new width and height given. Retain measures as is as if resize was commanded with original width and height.
 			return [null, null];
 		}

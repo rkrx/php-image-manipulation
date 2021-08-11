@@ -465,11 +465,7 @@ class Image {
 			return $this;
 		}
 
-		if($targetWidth < $width) {
-			return $this;
-		}
-
-		if($targetHeight < $height) {
+		if($targetWidth < $width && $targetHeight < $height) {
 			return $this;
 		}
 

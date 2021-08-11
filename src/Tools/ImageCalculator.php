@@ -8,7 +8,7 @@ class ImageCalculator {
 	 * @param int $origHeight
 	 * @param int|null $targWidth
 	 * @param int|null $targHeight
-	 * @return array{width: int|null, height: int|null}
+	 * @return array{int|null, int|null}
 	 */
 	public static function getProportionalSize(int $origWidth, int $origHeight, ?int $targWidth, ?int $targHeight): array {
 		if($targWidth !== null && $targHeight === null) {
@@ -17,7 +17,7 @@ class ImageCalculator {
 			$targWidth = (int) round($targHeight / $origHeight * $origWidth);
 		} else {
 			// No new width and height given. Retain measures as is as if resize was commanded with original width and height.
-			return ['width' => null, 'height' => null];
+			return [null, null];
 		}
 
 		if($targWidth > $targHeight) {
@@ -41,6 +41,6 @@ class ImageCalculator {
 		$w = (int) round($targetWidth);
 		$h = (int) round($targetHeight);
 		
-		return ['width' => $w, 'height' => $h];
+		return [$w, $h];
 	}
 }

@@ -1,7 +1,7 @@
 {
 	"name": "rkr/image",
 	"license": "MIT",
-	"description": "The legacy Fw-Framework",
+	"description": "A simple image manipulation library using gd-lib",
 	"autoload": {
 		"psr-4": {
 			"Kir\\Image\\": "src/"

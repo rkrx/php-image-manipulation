@@ -16,16 +16,16 @@ use Kir\Image\Image;
 $image = Image::loadFromFile('image.png');
 
 $newImage = $image->getCopy();
-$image->resizeProportional(500);
-$image->saveAsWebP('new-image-width-500.webp');
+$newImage->resizeProportional(500);
+$newImage->saveAsWebP('new-image-width-500.webp');
 
 $newImage = $image->getCopy();
-$image->resizeProportional(null, 500);
-$image->saveAsWebP('new-image-height-500.webp');
+$newImage->resizeProportional(null, 500);
+$newImage->saveAsWebP('new-image-height-500.webp');
 
 $newImage = $image->getCopy();
-$image->resizeProportional(500, 500);
-$image->saveAsWebP('new-image-largest-side-to-500.webp');
+$newImage->resizeProportional(500, 500);
+$newImage->saveAsWebP('new-image-largest-side-to-500.webp');
 ```
 
 ### Enlarge canvas
@@ -33,8 +33,6 @@ $image->saveAsWebP('new-image-largest-side-to-500.webp');
 ```php
 use Kir\Image\Image;
 $image = Image::loadFromFile('image.png');
-
-$newImage = $image->getCopy();
 $image->resizeProportional(500, 500);
 $image->resizeCanvasCentered(500, 500);
 $image->saveAsWebP('500x500.webp');

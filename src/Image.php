@@ -3,6 +3,7 @@
 namespace Kir\Image;
 
 use GdImage;
+use Kir\Image\Tools\ImageCalculator;
 
 class Image {
 	/** @var GdImage */
@@ -433,6 +434,47 @@ class Image {
 
 		return $this;
 	}
+	
+	/**
+	 * Resize image only if it is larger than the targeted
+	 *
+	 * ```
+	 * use Kir\Image\Image;
+	 * $image = Image::loadFromFile('image.png');
+	 *
+	 * $newImage = $image->getCopy();
+	 * $newImage->resizeProportional(500, 500);
+	 * $newImage->resizeCanvasCentered(500, 500);
+	 * $newImage->saveAsWebP('500x500.webp');
+	 * ```
+	 *
+	 * @param int|null $width
+	 * @param int|null $height
+	 * @return $this
+	 */
+	public function shrinkProportional(?int $width = null, ?int $height = null) {
+		[$targetWidth, $targetHeight] = ImageCalculator::getProportionalSize(
+			$this->getWidth(),
+			$this->getHeight(),
+			$width,
+			$height
+		);
+		
+		if($targetWidth === null && $targetHeight === null) {
+			// No new width and height given. Retain image as is as if resize was commanded with original width and height.
+			return $this;
+		}
+		
+		if($targetWidth < $width) {
+			return $this;
+		}
+		
+		if($targetHeight < $height) {
+			return $this;
+		}
+		
+		return $this->resize($targetWidth, $targetHeight);
+	}
 
 	/**
 	 * Resize an image proportionally.
@@ -445,32 +487,12 @@ class Image {
 		$sourceW = $this->getWidth();
 		$sourceH = $this->getHeight();
 		
-		if($width !== null && $height === null) {
-			$height = (int) round($width / $sourceW * $sourceH);
-		} elseif($width === null && $height !== null) {
-			$width = (int) round($height / $sourceH * $sourceW);
+		[$targetWidth, $targetHeight] = ImageCalculator::getProportionalSize($sourceW, $sourceH, $width, $height);
+		
+		if($targetWidth === null && $targetHeight === null) {
+			// No new width and height given. Retain image as is as if resize was commanded with original width and height.
+			return $this;
 		}
-
-		if($width > $height) {
-			$targetWidth = $width;
-			$targetHeight = $sourceH * $width / $sourceW;
-
-			if($targetHeight > $height) {
-				$targetWidth = $sourceW * $height / $sourceH;
-				$targetHeight = $height;
-			}
-		} else {
-			$targetWidth = $sourceW * $height / $sourceH;
-			$targetHeight = $height;
-
-			if($targetWidth > $width) {
-				$targetWidth = $width;
-				$targetHeight = $sourceH * $width / $sourceW;
-			}
-		}
-
-		$targetWidth = (int) round($targetWidth);
-		$targetHeight = (int) round($targetHeight);
 
 		$this->resize($targetWidth, $targetHeight);
 

@@ -1,0 +1,21 @@
+{
+	"name": "rkr/image",
+	"license": "MIT",
+	"description": "The legacy Fw-Framework",
+	"autoload": {
+		"psr-4": {
+			"Kir\\Image\\": "src/"
+		}
+	},
+	"require": {
+		"php": ">= 7.4",
+		"ext-gd": "*"
+	},
+	"require-dev": {
+		"phpstan/phpstan": ">= 0.1",
+		"phpunit/phpunit": "^9.5"
+	},
+	"scripts": {
+		"phpstan": "phpstan analyse -c phpstan.neon --memory-limit=2G"
+	}
+}

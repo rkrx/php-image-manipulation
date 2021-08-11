@@ -1,0 +1,4 @@
+#define cat_width 2
+#define cat_height 2
+static unsigned char cat_bits[] = {
+   0x03, 0x03 };

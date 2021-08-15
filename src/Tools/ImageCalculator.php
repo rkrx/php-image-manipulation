@@ -8,7 +8,7 @@ class ImageCalculator {
 	 * @param int $origHeight
 	 * @param int|null $targWidth
 	 * @param int|null $targHeight
-	 * @return array{int|null, int|null}
+	 * @return array{int, int}|array{null, null}
 	 */
 	public static function getProportionalSize(int $origWidth, int $origHeight, ?int $targWidth, ?int $targHeight): array {
 		if($targWidth !== null && $targHeight === null) {
@@ -38,8 +38,8 @@ class ImageCalculator {
 			}
 		}
 
-		$w = (int) round($targetWidth);
-		$h = (int) round($targetHeight);
+		$w = (int) round($targetWidth ?: 1);
+		$h = (int) round($targetHeight ?: 1);
 		
 		return [$w, $h];
 	}

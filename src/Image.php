@@ -37,11 +37,12 @@ class Image {
 	/**
 	 * Loads an image using all available image functions
 	 *
-	 * @param string $filename
+	 * @param string $data
 	 * @return Image
 	 */
 	public static function loadFromString(string $data): Image {
 		$resource = self::nonFalse(fn() => imagecreatefromstring($data));
+		/** @var GdImage $resource */
 		return new Image($resource);
 	}
 
@@ -79,6 +80,7 @@ class Image {
 	/**
 	 * @param int $width
 	 * @param int $height
+	 * @return Image
 	 */
 	public static function create(int $width, int $height, ?Color $color = null) {
 		if($color === null) {
@@ -91,12 +93,13 @@ class Image {
 	}
 
 	/**
-	 * @param GdImage
+	 * @param GdImage|resource|null $resource
 	 */
 	public function __construct($resource) {
 		if(!($resource instanceof GdImage || is_resource($resource))) {
 			throw new ImageRuntimeException('Invalid resource');
 		}
+		/** @var GdImage $resource */
 		$this->resource = $resource;
 	}
 
@@ -205,6 +208,7 @@ class Image {
 			for($x = 0; $x < $w; $x++) {
 				$alphaColor = 127 - ((imagecolorat($maskRes, $x, $y) & 0xFF) >> 1);
 				$color = imagecolorat($srcRes, $x, $y);
+				/** @var int $c */
 				$c = imagecolorallocatealpha($dstRes, ($color >> 16) & 255, ($color >> 8) & 255, $color & 255, $alphaColor);
 				imagesetpixel($dstRes, $x, $y, $c);
 			}
@@ -217,7 +221,6 @@ class Image {
 	}
 
 	/**
-	 * @param Image $mask
 	 * @return $this
 	 */
 	public function adjustColors(): self {
@@ -248,6 +251,7 @@ class Image {
 				$g = ($color >> 8) & 255;
 				$b = $color & 255;
 				$c = imagecolorallocatealpha($res, ($r - $cMin) * $f, ($g - $cMin) * $f, ($b - $cMin) * $f, $a);
+				/** @var int $c */
 				imagesetpixel($res, $x, $y, $c);
 			}
 		}
@@ -344,9 +348,10 @@ class Image {
 		imagetruecolortopalette($copyRes, false, 255);
 
 		$wf = static function ($copyRes, $a, $b, int $ca, int $cb) {
-			$w = $ca * $a ?: 1;
-			$h = $ca * $b ?: 1;
-			$tmp = imagecreatetruecolor($w, $h);
+			$w = (int) self::nonFalse(fn() => ceil($ca * $a ?: 1));
+			$h = (int) self::nonFalse(fn() => ceil($ca * $b ?: 1));
+			/** @var GdImage $tmp */
+			$tmp = self::nonFalse(fn() => imagecreatetruecolor($w, $h));
 			try {
 				for($s = 0; $s < $cb; $s++) {
 					imagecopy($tmp, $copyRes, 0, 0, $s * $b, $s * $a, $w, $h);
@@ -381,14 +386,14 @@ class Image {
 	}
 
 	/**
-	 * @param int|null $width
-	 * @param int|null $height
+	 * @param positive-int $width
+	 * @param positive-int $height
 	 * @param int|null $offsetX
 	 * @param int|null $offsetY
 	 * @param Color|null $backgroundColor
 	 * @return $this
 	 */
-	public function resizeCanvas(?int $width = null, ?int $height = null, ?int $offsetX = null, ?int $offsetY = null, ?Color $backgroundColor = null) {
+	public function resizeCanvas(int $width, int $height, ?int $offsetX = null, ?int $offsetY = null, ?Color $backgroundColor = null) {
 		$intOffsetX = $offsetX ?? (int) round(floor($width / 2) - floor($this->getWidth() / 2));
 		$intOffsetY = $offsetY ?? (int) round(floor($height / 2) - floor($this->getHeight() / 2));
 		$backgroundColor = $backgroundColor ?? Color::whiteOpaque();
@@ -404,12 +409,12 @@ class Image {
 	}
 
 	/**
-	 * @param int|null $width
-	 * @param int|null $height
+	 * @param positive-int $width
+	 * @param positive-int $height
 	 * @param Color|null $backgroundColor
 	 * @return $this
 	 */
-	public function resizeCanvasCentered(?int $width = null, ?int $height = null, ?Color $backgroundColor = null) {
+	public function resizeCanvasCentered(int $width, int $height, ?Color $backgroundColor = null) {
 		$absoluteOffsetX = (int) round($width / 2 - $this->getWidth() / 2);
 		$absoluteOffsetY = (int) round($height / 2 - $this->getHeight() / 2);
 		$this->resizeCanvas($width, $height, $absoluteOffsetX, $absoluteOffsetY, $backgroundColor);
@@ -494,8 +499,14 @@ class Image {
 
 		return $this;
 	}
-
-	public function fill(int $x, int $y, Color $color) {
+	
+	/**
+	 * @param int $x
+	 * @param int $y
+	 * @param Color $color
+	 * @return $this
+	 */
+	public function fill(int $x, int $y, Color $color): self {
 		$colorCode = self::createGdColorFromColor($this->resource, $color);
 		imagefill($this->resource, $x, $y, $colorCode);
 		return $this;
@@ -519,8 +530,9 @@ class Image {
 	 * @param string $filename
 	 * @throws ImageRuntimeException
 	 */
-	public function saveAsPng(string $filename) {
+	public function saveAsPng(string $filename): self {
 		imagepng($this->getGdImage(), $filename);
+		return $this;
 	}
 
 	/**
@@ -528,16 +540,18 @@ class Image {
 	 * @param int $quality
 	 * @throws ImageRuntimeException
 	 */
-	public function saveAsJpeg(string $filename, int $quality = 100) {
+	public function saveAsJpeg(string $filename, int $quality = 100): self {
 		imagejpeg($this->getGdImage(), $filename, $quality);
+		return $this;
 	}
 
 	/**
 	 * @param string $filename
 	 * @throws ImageRuntimeException
 	 */
-	public function saveAsGif(string $filename) {
+	public function saveAsGif(string $filename): self {
 		imagegif($this->getGdImage(), $filename);
+		return $this;
 	}
 
 	/**
@@ -545,16 +559,18 @@ class Image {
 	 * @param int $quality
 	 * @throws ImageRuntimeException
 	 */
-	public function saveAsWebP(string $filename, int $quality = 100) {
+	public function saveAsWebP(string $filename, int $quality = 100): self {
 		imagewebp($this->getGdImage(), $filename, $quality);
+		return $this;
 	}
 
 	/**
 	 * @param string $filename
 	 * @throws ImageRuntimeException
 	 */
-	public function saveAsBmp(string $filename) {
+	public function saveAsBmp(string $filename): self {
 		imagebmp($this->getGdImage(), $filename);
+		return $this;
 	}
 
 	/**
@@ -563,25 +579,13 @@ class Image {
 	 * @return GdImage
 	 */
 	private static function createResource(int $width, int $height, ?Color $color = null) {
-		$resource = imagecreatetruecolor($width, $height);
+		/** @var GdImage $resource */
+		$resource = self::nonFalse(fn() => imagecreatetruecolor($width, $height));
 		imagesavealpha($resource, true);
 		if($color !== null) {
 			imagefill($resource, 0, 0, self::createGdColorFromColor($resource, $color));
 		}
 		return $resource;
-	}
-
-	/**
-	 * @template T
-	 * @param callable(): T $fn
-	 * @return T
-	 */
-	private static function nonFalse($fn) {
-		$result = $fn();
-		if($result === false) {
-			throw new ImageRuntimeException();
-		}
-		return $result;
 	}
 
 	/**
@@ -595,6 +599,19 @@ class Image {
 		$blue = $color->getBlue();
 		$alpha = $color->getAlpha();
 		$a = 127 - (($alpha & 255) >> 1);
-		return self::nonFalse(fn() => imagecolorallocatealpha($resource, $red, $green, $blue, $a));
+		return (int) self::nonFalse(fn() => imagecolorallocatealpha($resource, $red, $green, $blue, $a));
+	}
+
+	/**
+	 * @template T
+	 * @param callable(): T $fn
+	 * @return T
+	 */
+	private static function nonFalse($fn) {
+		$result = $fn();
+		if($result === false || $result === true) {
+			throw new ImageRuntimeException();
+		}
+		return $result;
 	}
 }

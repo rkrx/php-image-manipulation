@@ -130,6 +130,18 @@ class Image {
 		imagecopy($im->getGdImage(), $this->resource, 0, 0, 0, 0, $this->getWidth(), $this->getHeight());
 		return $im;
 	}
+	
+	/**
+	 * @param GdImage|resource $targetImage
+	 * @param int $offsetX
+	 * @param int $offsetY
+	 * @return self
+	 */
+	public function placeImageOn($targetImage, int $offsetX = 0, int $offsetY = 0): self {
+		/** @var GdImage $targetImage */
+		imagecopy($targetImage, $this->resource, $offsetX, $offsetY, 0, 0, $this->getWidth(), $this->getHeight());
+		return $this;
+	}
 
 	/**
 	 * @param int $x

@@ -113,11 +113,17 @@ class Image {
 	public function getGdImage() {
 		return $this->resource;
 	}
-
+	
+	/**
+	 * @return int
+	 */
 	public function getWidth(): int {
 		return imagesx($this->resource);
 	}
 
+	/**
+	 * @return int
+	 */
 	public function getHeight(): int {
 		return imagesy($this->resource);
 	}
@@ -398,8 +404,8 @@ class Image {
 	}
 
 	/**
-	 * @param positive-int $width
-	 * @param positive-int $height
+	 * @param int $width
+	 * @param int $height
 	 * @param int|null $offsetX
 	 * @param int|null $offsetY
 	 * @param Color|null $backgroundColor
@@ -421,8 +427,8 @@ class Image {
 	}
 
 	/**
-	 * @param positive-int $width
-	 * @param positive-int $height
+	 * @param int $width
+	 * @param int $height
 	 * @param Color|null $backgroundColor
 	 * @return $this
 	 */

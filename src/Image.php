@@ -537,14 +537,13 @@ class Image {
 	 * @throws ImageRuntimeException
 	 */
 	public function saveAs(?string $filename, ?int $explicitType = null): self {
-		$type = ImageTypeTools::getImageTypeFromFileExtension($filename);
-		$type = $type ?? $explicitType ?? $this->lastFileType;
+		$type = $explicitType ?? ImageTypeTools::getImageTypeFromFileExtension($filename) ?? $this->lastFileType;
 		switch ($type) {
-			case IMAGETYPE_GIF : return $this->saveAsGif();
-			case IMAGETYPE_PNG : return $this->saveAsPng();
-			case IMAGETYPE_BMP : return $this->saveAsBmp();
-			case IMAGETYPE_WEBP: return $this->saveAsWebP();
-			default:             return $this->saveAsJpeg();
+			case IMAGETYPE_GIF : return $this->saveAsGif($filename);
+			case IMAGETYPE_PNG : return $this->saveAsPng($filename);
+			case IMAGETYPE_BMP : return $this->saveAsBmp($filename);
+			case IMAGETYPE_WEBP: return $this->saveAsWebP($filename);
+			default:             return $this->saveAsJpeg($filename);
 		}
 	}
 

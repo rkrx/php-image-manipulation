@@ -9,11 +9,14 @@
 	},
 	"require": {
 		"php": ">= 7.4",
-		"ext-gd": "*"
+		"ext-gd": "*",
 	},
 	"require-dev": {
 		"phpstan/phpstan": ">= 0.1",
 		"phpunit/phpunit": "^9.5"
+	},
+	"suggest": {
+		"ext-exif": "For automatic detection of image formats"
 	},
 	"scripts": {
 		"phpstan": "phpstan analyse -c phpstan.neon --memory-limit=2G"

@@ -4,34 +4,29 @@ namespace Kir\Image;
 
 use GdImage;
 use Kir\Image\Tools\ImageCalculator;
+use Kir\Image\Tools\ImageFactory;
+use Kir\Image\Tools\ImageTools;
+use Kir\Image\Tools\ImageTypeTools;
 
 class Image {
 	/** @var GdImage */
 	private $resource;
+	private ?int $lastFileType = null;
 
 	/**
 	 * @param string $filename
 	 * @return int
 	 */
 	public static function getImageType(string $filename): int {
-		$imageType = exif_imagetype($filename);
-		if($imageType === false) {
-			throw new ImageRuntimeException('Unknown image type');
-		}
-		return $imageType;
+		return ImageFactory::getImageType($filename);
 	}
 
 	/**
 	 * @param string $filename
-	 * @return string
+	 * @return string|null
 	 */
-	public static function getDefaultImageExtension(string $filename): string {
-		$typeId = self::getImageType($filename);
-		$ext = image_type_to_extension($typeId);
-		if($ext === false) {
-			throw new ImageRuntimeException('Unknown image extension');
-		}
-		return $ext;
+	public static function getDefaultImageExtension(string $filename): ?string {
+		return ImageTypeTools::getDefaultImageExtensionFromFile($filename);
 	}
 
 	/**
@@ -41,7 +36,7 @@ class Image {
 	 * @return Image
 	 */
 	public static function loadFromString(string $data): Image {
-		$resource = self::nonFalse(fn() => imagecreatefromstring($data));
+		$resource = ImageTools::nonFalse(fn() => imagecreatefromstring($data));
 		/** @var GdImage $resource */
 		return new Image($resource);
 	}
@@ -53,41 +48,22 @@ class Image {
 	 * @return Image
 	 */
 	public static function loadFromFile(string $filename): Image {
-		$loadImage = static function ($filename) {
-			$imageType = self::getImageType($filename);
-			switch ($imageType) {
-				case IMAGETYPE_GIF: return imagecreatefromgif($filename);
-				case IMAGETYPE_JPEG: return imagecreatefromjpeg($filename);
-				case IMAGETYPE_PNG: return imagecreatefrompng($filename);
-				case IMAGETYPE_BMP: return imagecreatefrombmp($filename);
-				case IMAGETYPE_WEBP: return imagecreatefromwebp($filename);
-				case IMAGETYPE_XBM: return imagecreatefromxbm($filename);
-				default: throw new ImageRuntimeException("Unsupported image format: {$imageType}");
-			}
-		};
-		$resource = $loadImage($filename);
-		if($resource === false) {
-			throw new ImageRuntimeException('Could not load image');
-		}
-		$w = imagesx($resource);
-		$h = imagesy($resource);
-		$image = self::create($w, $h);
-		imagecopy($image->getGdImage(), $resource, 0, 0, 0, 0, $w, $h);
-		imagedestroy($resource);
-		return $image;
+		return ImageFactory::loadImageFromFile($filename);
 	}
 
 	/**
 	 * @param int $width
 	 * @param int $height
+	 * @param Color|null $color
+	 * @param int|null $imageType
 	 * @return Image
 	 */
-	public static function create(int $width, int $height, ?Color $color = null) {
+	public static function create(int $width, int $height, ?Color $color = null, ?int $imageType = null) {
 		if($color === null) {
 			$color = Color::fromRGB(255, 255, 255);
 		}
 		$resource = self::createResource($width, $height);
-		$image = new self($resource);
+		$image = new self($resource, $imageType);
 		$image->fill(0, 0, $color);
 		return $image;
 	}
@@ -95,12 +71,13 @@ class Image {
 	/**
 	 * @param GdImage|resource|null $resource
 	 */
-	public function __construct($resource) {
+	public function __construct($resource, ?int $type = null) {
 		if(!($resource instanceof GdImage || is_resource($resource))) {
 			throw new ImageRuntimeException('Invalid resource');
 		}
 		/** @var GdImage $resource */
 		$this->resource = $resource;
+		$this->lastFileType = $type;
 	}
 
 	public function __destruct() {
@@ -113,7 +90,7 @@ class Image {
 	public function getGdImage() {
 		return $this->resource;
 	}
-	
+
 	/**
 	 * @return int
 	 */
@@ -127,6 +104,16 @@ class Image {
 	public function getHeight(): int {
 		return imagesy($this->resource);
 	}
+	
+	/**
+	 * Returns a php gd image format constant-int for a specific format that was used to create this image. If the image
+	 * was created from scratch, and no format was specified, null will be returned.
+	 *
+	 * @return int|null
+	 */
+	public function getFileType(): ?int {
+		return $this->lastFileType;
+	}
 
 	/**
 	 * @return Image A copy of the current image.
@@ -136,7 +123,7 @@ class Image {
 		imagecopy($im->getGdImage(), $this->resource, 0, 0, 0, 0, $this->getWidth(), $this->getHeight());
 		return $im;
 	}
-	
+
 	/**
 	 * @param GdImage|resource $targetImage
 	 * @param int $offsetX
@@ -197,7 +184,7 @@ class Image {
 	 * @throws ImageRuntimeException
 	 */
 	public function getChannelColorAt(int $x, int $y, int $bitMask) {
-		$color = self::nonFalse(fn() => imagecolorat($this->resource, $x, $y));
+		$color = ImageTools::nonFalse(fn() => imagecolorat($this->resource, $x, $y));
 		return ($color >> $bitMask) & 0xFF;
 	}
 
@@ -366,10 +353,10 @@ class Image {
 		imagetruecolortopalette($copyRes, false, 255);
 
 		$wf = static function ($copyRes, $a, $b, int $ca, int $cb) {
-			$w = (int) self::nonFalse(fn() => ceil($ca * $a ?: 1));
-			$h = (int) self::nonFalse(fn() => ceil($ca * $b ?: 1));
+			$w = (int) ImageTools::nonFalse(static fn() => ceil($ca * $a ?: 1));
+			$h = (int) ImageTools::nonFalse(static fn() => ceil($ca * $b ?: 1));
 			/** @var GdImage $tmp */
-			$tmp = self::nonFalse(fn() => imagecreatetruecolor($w, $h));
+			$tmp = ImageTools::nonFalse(static fn() => imagecreatetruecolor($w, $h));
 			try {
 				for($s = 0; $s < $cb; $s++) {
 					imagecopy($tmp, $copyRes, 0, 0, $s * $b, $s * $a, $w, $h);
@@ -517,7 +504,7 @@ class Image {
 
 		return $this;
 	}
-	
+
 	/**
 	 * @param int $x
 	 * @param int $y
@@ -545,48 +532,70 @@ class Image {
 	}
 
 	/**
-	 * @param string $filename
+	 * @param string|null $filename
+	 * @return $this
 	 * @throws ImageRuntimeException
 	 */
-	public function saveAsPng(string $filename): self {
+	public function saveAs(?string $filename, ?int $explicitType = null): self {
+		$type = ImageTypeTools::getImageTypeFromFileExtension($filename);
+		$type = $type ?? $explicitType ?? $this->lastFileType;
+		switch ($type) {
+			case IMAGETYPE_GIF : return $this->saveAsGif();
+			case IMAGETYPE_PNG : return $this->saveAsPng();
+			case IMAGETYPE_BMP : return $this->saveAsBmp();
+			case IMAGETYPE_WEBP: return $this->saveAsWebP();
+			default:             return $this->saveAsJpeg();
+		}
+	}
+
+	/**
+	 * @param string|null $filename
+	 * @return $this
+	 * @throws ImageRuntimeException
+	 */
+	public function saveAsPng(?string $filename = null): self {
 		imagepng($this->getGdImage(), $filename);
 		return $this;
 	}
 
 	/**
-	 * @param string $filename
+	 * @param string|null $filename
 	 * @param int $quality
+	 * @return $this
 	 * @throws ImageRuntimeException
 	 */
-	public function saveAsJpeg(string $filename, int $quality = 100): self {
+	public function saveAsJpeg(?string $filename = null, int $quality = 100): self {
 		imagejpeg($this->getGdImage(), $filename, $quality);
 		return $this;
 	}
 
 	/**
-	 * @param string $filename
+	 * @param string|null $filename
+	 * @return $this
 	 * @throws ImageRuntimeException
 	 */
-	public function saveAsGif(string $filename): self {
+	public function saveAsGif(?string $filename = null): self {
 		imagegif($this->getGdImage(), $filename);
 		return $this;
 	}
 
 	/**
-	 * @param string $filename
+	 * @param string|null $filename
 	 * @param int $quality
+	 * @return $this
 	 * @throws ImageRuntimeException
 	 */
-	public function saveAsWebP(string $filename, int $quality = 100): self {
+	public function saveAsWebP(?string $filename = null, int $quality = 100): self {
 		imagewebp($this->getGdImage(), $filename, $quality);
 		return $this;
 	}
 
 	/**
-	 * @param string $filename
+	 * @param string|null $filename
+	 * @return $this
 	 * @throws ImageRuntimeException
 	 */
-	public function saveAsBmp(string $filename): self {
+	public function saveAsBmp(?string $filename = null): self {
 		imagebmp($this->getGdImage(), $filename);
 		return $this;
 	}
@@ -598,7 +607,7 @@ class Image {
 	 */
 	private static function createResource(int $width, int $height, ?Color $color = null) {
 		/** @var GdImage $resource */
-		$resource = self::nonFalse(fn() => imagecreatetruecolor($width, $height));
+		$resource = ImageTools::nonFalse(static fn() => imagecreatetruecolor($width, $height));
 		imagesavealpha($resource, true);
 		if($color !== null) {
 			imagefill($resource, 0, 0, self::createGdColorFromColor($resource, $color));
@@ -617,19 +626,6 @@ class Image {
 		$blue = $color->getBlue();
 		$alpha = $color->getAlpha();
 		$a = 127 - (($alpha & 255) >> 1);
-		return (int) self::nonFalse(fn() => imagecolorallocatealpha($resource, $red, $green, $blue, $a));
-	}
-
-	/**
-	 * @template T
-	 * @param callable(): T $fn
-	 * @return T
-	 */
-	private static function nonFalse($fn) {
-		$result = $fn();
-		if($result === false || $result === true) {
-			throw new ImageRuntimeException();
-		}
-		return $result;
+		return (int) ImageTools::nonFalse(static fn() => imagecolorallocatealpha($resource, $red, $green, $blue, $a));
 	}
 }

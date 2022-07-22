@@ -43,4 +43,45 @@ class ImageCalculator {
 		
 		return [$w, $h];
 	}
+	
+	/**
+	 * @param int $srcW
+	 * @param int $srcH
+	 * @param int|null $dstW
+	 * @param int|null $dstH
+	 * @return array{int, int}|array{null, null}
+	 */
+	public static function getProprtionalCoverSize(int $srcW, int $srcH, ?int $dstW, ?int $dstH): array {
+		[$finalW, $finalH] = self::getProprtionalCoverSizeF($srcW, $srcH, $dstW, $dstH);
+		return [(int) $finalW, (int) $finalH];
+	}
+	
+	/**
+	 * @param int $srcW
+	 * @param int $srcH
+	 * @param int|null $dstW
+	 * @param int|null $dstH
+	 * @return array{float, float}|array{null, null}
+	 */
+	public static function getProprtionalCoverSizeF(int $srcW, int $srcH, ?int $dstW, ?int $dstH): array {
+		if($dstH >= $dstW) {
+			$finalH = $dstH;
+			$finalW = $finalH * $srcW / $srcH;
+			
+			if(!($finalW >= $dstW)) {
+				$finalW = $dstW;
+				$finalH = $finalW * $srcH / $srcW;
+			}
+		} else {
+			$finalW = $dstW;
+			$finalH = $finalW * $srcH / $srcW;
+			
+			if(!($finalH >= $dstH)) {
+				$finalH = $dstH;
+				$finalW = $finalH * $srcW / $srcH;
+			}
+		}
+		
+		return [$finalW, $finalH];
+	}
 }

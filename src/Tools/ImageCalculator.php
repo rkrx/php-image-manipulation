@@ -91,6 +91,8 @@ class ImageCalculator {
 			}
 		}
 		
+		/** @var int $finalW */
+		/** @var int $finalH */
 		return [$finalW, $finalH];
 	}
 }

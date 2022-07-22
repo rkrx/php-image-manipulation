@@ -484,11 +484,6 @@ class Image {
 			$height
 		);
 
-		if($targetWidth === null && $targetHeight === null) {
-			// No new width and height given. Retain image as is as if resize was commanded with original width and height.
-			return $this;
-		}
-
 		if($targetWidth < $width && $targetHeight < $height) {
 			return $this;
 		}
@@ -508,11 +503,6 @@ class Image {
 		$sourceH = $this->getHeight();
 
 		[$targetWidth, $targetHeight] = ImageCalculator::getProportionalSize($sourceW, $sourceH, $width, $height);
-
-		if($targetWidth === null && $targetHeight === null) {
-			// No new width and height given. Retain image as is as if resize was commanded with original width and height.
-			return $this;
-		}
 
 		$this->resize($targetWidth, $targetHeight);
 

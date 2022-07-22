@@ -114,6 +114,16 @@ class Image {
 	public function getFileType(): ?int {
 		return $this->lastFileType;
 	}
+	
+	/**
+	 * The mime type of an image
+	 *
+	 * @return string|null
+	 */
+	public function getMimeType(): ?string {
+		$fileType = $this->getFileType();
+		return $fileType !== null ? image_type_to_mime_type($fileType) : null;
+	}
 
 	/**
 	 * @return Image A copy of the current image.

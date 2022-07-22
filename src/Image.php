@@ -129,8 +129,12 @@ class Image {
 	 * @return Image A copy of the current image.
 	 */
 	public function getCopy(): self {
-		$im = self::create($this->getWidth(), $this->getHeight(), Color::fromRGBA(255, 255, 255, 0));
-		imagecopy($im->getGdImage(), $this->resource, 0, 0, 0, 0, $this->getWidth(), $this->getHeight());
+		$fileType = $this->getFileType();
+		$width = $this->getWidth();
+		$height = $this->getHeight();
+		$whiteTransparent = Color::fromRGBA(255, 255, 255, 0);
+		$im = self::create($width, $height, $whiteTransparent, $fileType);
+		imagecopy($im->getGdImage(), $this->resource, 0, 0, 0, 0, $width, $height);
 		return $im;
 	}
 

@@ -73,12 +73,10 @@ class Image {
 	 */
 	public static function create(int $width, int $height, ?Color $color = null, ?int $imageType = null) {
 		if($color === null) {
-			$color = Color::fromRGB(255, 255, 255);
+			$color = Color::whiteTransparent();
 		}
-		$resource = self::createResource($width, $height);
-		$image = new self($resource, $imageType);
-		$image->fill(0, 0, $color);
-		return $image;
+		$resource = self::createResource($width, $height, $color);
+		return new self($resource, $imageType);
 	}
 
 	/**
@@ -145,7 +143,7 @@ class Image {
 		$fileType = $this->getFileType();
 		$width = $this->getWidth();
 		$height = $this->getHeight();
-		$whiteTransparent = Color::fromRGBA(255, 255, 255, 0);
+		$whiteTransparent = Color::whiteTransparent();
 		$im = self::create($width, $height, $whiteTransparent, $fileType);
 		imagecopy($im->getGdImage(), $this->resource, 0, 0, 0, 0, $width, $height);
 		return $im;
@@ -622,12 +620,15 @@ class Image {
 	 * @return GdImage
 	 */
 	private static function createResource(int $width, int $height, ?Color $color = null) {
+		if($color === null) {
+			$color = Color::whiteTransparent();
+		}
 		/** @var GdImage $resource */
 		$resource = ImageTools::nonFalse(static fn() => imagecreatetruecolor($width, $height));
+		imagealphablending($resource, false);
+		imagefill($resource, 0, 0, self::createGdColorFromColor($resource, $color));
+		imagealphablending($resource, true);
 		imagesavealpha($resource, true);
-		if($color !== null) {
-			imagefill($resource, 0, 0, self::createGdColorFromColor($resource, $color));
-		}
 		return $resource;
 	}
 

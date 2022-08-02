@@ -2,6 +2,7 @@
 
 namespace Kir\Image;
 
+use Closure;
 use GdImage;
 use Kir\Image\Tools\ImageCalculator;
 use Kir\Image\Tools\ImageFactory;
@@ -50,7 +51,19 @@ class Image {
 	public static function loadFromFile(string $filename): Image {
 		return ImageFactory::loadImageFromFile($filename);
 	}
-
+	
+	/**
+	 * @template T
+	 * @param Image $srcIm
+	 * @param Closure(Image): T $fn
+	 * @return void
+	 */
+	private static function removeAlphaChannel(Image $srcIm, Closure $fn) {
+		$newBackground = Image::create($srcIm->getWidth(), $srcIm->getHeight(), Color::whiteOpaque(), $srcIm->getFileType());
+		$srcIm->placeImageOn($newBackground->getGdImage());
+		$fn($newBackground);
+	}
+	
 	/**
 	 * @param int $width
 	 * @param int $height
@@ -568,7 +581,7 @@ class Image {
 	 * @throws ImageRuntimeException
 	 */
 	public function saveAsJpeg(?string $filename = null, int $quality = 100): self {
-		imagejpeg($this->getGdImage(), $filename, $quality);
+		self::removeAlphaChannel($this, fn(Image $im) => imagejpeg($im->getGdImage(), $filename, $quality));
 		return $this;
 	}
 
@@ -578,7 +591,7 @@ class Image {
 	 * @throws ImageRuntimeException
 	 */
 	public function saveAsGif(?string $filename = null): self {
-		imagegif($this->getGdImage(), $filename);
+		self::removeAlphaChannel($this, fn(Image $im) => imagegif($im->getGdImage(), $filename));
 		return $this;
 	}
 
@@ -599,7 +612,7 @@ class Image {
 	 * @throws ImageRuntimeException
 	 */
 	public function saveAsBmp(?string $filename = null): self {
-		imagebmp($this->getGdImage(), $filename);
+		self::removeAlphaChannel($this, fn(Image $im) => imagebmp($im->getGdImage(), $filename));
 		return $this;
 	}
 

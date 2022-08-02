@@ -49,6 +49,13 @@ class Color {
 	}
 	
 	/**
+	 * @return self
+	 */
+	public static function whiteTransparent(): self {
+		return self::fromRGBA(255, 255, 255, 0);
+	}
+	
+	/**
 	 * @param int $red A number between 0 and 255 (0 = no red, 255 = full red)
 	 * @param int $green A number between 0 and 255 (0 = no green, 255 = full green)
 	 * @param int $blue A number between 0 and 255 (0 = no blue, 255 = full blue)

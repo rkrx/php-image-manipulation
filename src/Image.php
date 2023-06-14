@@ -488,16 +488,19 @@ class Image {
 	 * @return $this
 	 */
 	public function shrinkProportional(?int $width = null, ?int $height = null) {
+		$origWidth = $this->getWidth();
+		$origHeight = $this->getHeight();
+
+		if($origWidth < $width && $origHeight < $height) {
+			return $this;
+		}
+
 		[$targetWidth, $targetHeight] = ImageCalculator::getProportionalSize(
-			$this->getWidth(),
-			$this->getHeight(),
+			$origWidth,
+			$origHeight,
 			$width,
 			$height
 		);
-
-		if($targetWidth < $width && $targetHeight < $height) {
-			return $this;
-		}
 
 		return $this->resize($targetWidth, $targetHeight);
 	}

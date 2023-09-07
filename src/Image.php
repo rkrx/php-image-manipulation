@@ -15,6 +15,15 @@ class Image {
 	private ?int $lastFileType = null;
 
 	/**
+	 * Detects the image type of the given image file.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $imageType = Image::getImageType('image.png');
+	 * echo $imageType; // the image type constant, e.g. IMAGETYPE_PNG
+	 * ```
+	 *
 	 * @param string $filename The filename of the image.
 	 * @return int
 	 */
@@ -24,6 +33,13 @@ class Image {
 
 	/**
 	 * Returns the default file extension for a given image type determined using mime_content_type.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $extension = Image::getDefaultImageExtension('image-without-extension');
+	 * echo $extension; // the file extension, e.g. "png"
+	 * ```
 	 *
 	 * @param string $filename The filename of the image.
 	 * @return string|null The file extension of the image determined by using mime_content_type.
@@ -36,7 +52,8 @@ class Image {
 	 * Loads an image using all available image functions.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $contents = file_get_contents('image.png');
 	 * $image = Image::loadFromString($contents);
 	 * ```
@@ -54,7 +71,8 @@ class Image {
 	 * Loads an image using all available image functions.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $image = Image::loadFromFile('image.png');
 	 * ```
 	 *
@@ -85,7 +103,8 @@ class Image {
 	 * can be specified.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $im = Image::create(100, 100, Color::whiteTransparent(), IMAGETYPE_PNG);
 	 * ```
 	 *
@@ -123,7 +142,8 @@ class Image {
 	 * Returns the current image resource as a GdImage object.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $im = Image::create(100, 100, Color::whiteTransparent(), IMAGETYPE_PNG);
 	 * $resource = $im->getGdImage();
 	 * image_jpeg($resource, 'image.jpg');
@@ -139,7 +159,8 @@ class Image {
 	 * Returns the width of the image. This is the horizontal size in pixels.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $im = Image::loadFromFile('image.png');
 	 * $width = $im->getWidth();
 	 * ```
@@ -154,7 +175,8 @@ class Image {
 	 * Returns the height of the image. This is the vertical size in pixels.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $im = Image::loadFromFile('image.png');
 	 * $height = $im->getHeight();
 	 * ```
@@ -171,7 +193,8 @@ class Image {
 	 * See possible [file types](https://www.php.net/manual/en/image.constants.php#constant.imagetype-gif).
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $im = Image::loadFromFile('image.png');
 	 * $fileType = $im->getFileType();
 	 * ```
@@ -186,7 +209,8 @@ class Image {
 	 * The mime-type of an image.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $im = Image::loadFromFile('image.png');
 	 * $mimeType = $im->getMimeType();
 	 * echo $mimeType; // image/png
@@ -203,7 +227,8 @@ class Image {
 	 * Returns a copy of the current image.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $im = Image::loadFromFile('image.png');
 	 * $copy = $im->getCopy();
 	 * ```
@@ -224,7 +249,8 @@ class Image {
 	 * Place an image onto the current image.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $im = Image::loadFromFile('image.png');
 	 * $logo = Image::loadFromFile('logo.png');
 	 * $im->placeImageOn($logo, 10, 10);
@@ -245,7 +271,8 @@ class Image {
 	 * Returns the red color at the given position. 0 means no red color, 255 means full red color.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $im = Image::loadFromFile('image.png');
 	 * $red = $im->getRedColorAt(10, 10);
 	 * echo $red; // A value between 0 and 255
@@ -264,7 +291,8 @@ class Image {
 	 * Returns the green color at the given position. 0 means no green color, 255 means full green color.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $im = Image::loadFromFile('image.png');
 	 * $green = $im->getGreenColorAt(10, 10);
 	 * echo $green; // A value between 0 and 255
@@ -283,7 +311,8 @@ class Image {
 	 * Returns the blue color at the given position. 0 means no blue color, 255 means full blue color.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $im = Image::loadFromFile('image.png');
 	 * $blue = $im->getBlueColorAt(10, 10);
 	 * echo $blue; // A value between 0 and 255
@@ -302,7 +331,8 @@ class Image {
 	 * Returns the alpha value at the given position. 0 means no alpha, 255 means full alpha.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $im = Image::loadFromFile('image.png');
 	 * $alpha = $im->getAlphaAt(10, 10);
 	 * echo $alpha; // A value between 0 and 255
@@ -322,7 +352,8 @@ class Image {
 	 * Returns a channel value at the given position. The color value is between 0 and 255 according to the given bit mask.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $im = Image::loadFromFile('image.png');
 	 * $red = $im->getChannelColorAt(10, 10, 0xFF0000);
 	 * $green = $im->getChannelColorAt(10, 10, 0x00FF00);
@@ -344,7 +375,8 @@ class Image {
 	 * Converts the current image to a grey scale image.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $im = Image::loadFromFile('image.png');
 	 * $im->greyscale(); // The image is now a grey scale image.
 	 * ```
@@ -359,6 +391,14 @@ class Image {
 	/**
 	 * Applies an image mask to the current image. The mask image must be a greyscale image. The channel value of the
 	 * mask image will be used as alpha value for the current image.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $im = Image::loadFromFile('image.png');
+	 * $mask = Image::loadFromFile('mask.png');
+	 * $im->applyAlphaMaskFromGreyscaleImage($mask);
+	 * ```
 	 *
 	 * @param Image $mask The grey scale mask image.
 	 * @return $this The new image.
@@ -390,6 +430,13 @@ class Image {
 
 	/**
 	 * The colors of the image will be adjusted to the full range of 0 to 255.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $im = Image::loadFromFile('image.png');
+	 * $im->adjustColors();
+	 * ```
 	 *
 	 * @return $this The current image.
 	 */
@@ -436,11 +483,23 @@ class Image {
 	}
 
 	/**
-	 * Remove excess white space around the image. The threshold value is the value of which a non-white color will be
-	 * still treated as white. The border width in percent.
+	 * Remove excess white space around the image.
 	 *
-	 * @param int $threshold The threshold value of which a non-white color will be still treated as white. 0 means no threshold, 255 means full threshold.
-	 * @param int $borderPercent The border width in percent. 3 means 3% on each side.
+	 * The threshold value is the value of which a non-white color will be still treated as white. A threshold value of
+	 * 15 means that a color with a value of 240 will be treated as white. A threshold value of 255 means that only a
+	 * color with a value of 255 will be treated as white.
+	 *
+	 * The border width is in percent. 3 means 3% on each side.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $im = Image::loadFromFile('image.png');
+	 * $im->crop(15, 3);
+	 * ```
+	 *
+	 * @param int $threshold The threshold value of which a non-white color will be still treated as white.
+	 * @param int $borderPercent The border width in percent.
 	 * @param Color|null $backgroundColor The background color of the new image.
 	 * @return $this This instance with a new image resource.
 	 */
@@ -513,7 +572,20 @@ class Image {
 	}
 
 	/**
-	 * @param int $threshold The threshold value of which a non-white color will be still treated as white. 0 means no threshold, 255 means full threshold.
+	 * Detects the inner object of the image. The inner object is the object without any white space around it.
+	 *
+	 * The threshold value is the value of which a non-white color will be still treated as white. A threshold value of
+	 * 15 means that a color with a value of 240 will be treated as white. A threshold value of 255 means that only a
+	 * color with a value of 255 will be treated as white.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $im = Image::loadFromFile('image.png');
+	 * $measures = $im->detectInnerObject(15);
+	 * ```
+	 *
+	 * @param int $threshold The threshold value of which a non-white color will be still treated as white.
 	 * @return array{left: int, top: int, right: int, bottom: int, width: int, height: int} The measures of the inner object.
 	 */
 	public function detectInnerObject(int $threshold = 15): array {
@@ -565,6 +637,17 @@ class Image {
 	}
 
 	/**
+	 * Resizes the current image to the given width and height. Will not keep the current proportion.
+	 * Is the image is larger than the given width and height, the image will be cropped. If the image is smaller than
+	 * the given width and height, there will be colored space added around the image with the given color.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $im = Image::loadFromFile('image.png');
+	 * $im->resizeCanvas(500, 500); // Image will be forcefully cropped or enlarged to 500x500 pixels.
+	 * ```
+	 *
 	 * @param int $width The width of the new image.
 	 * @param int $height The height of the new image.
 	 * @param int|null $offsetX The horizontal offset, left to right.
@@ -588,6 +671,17 @@ class Image {
 	}
 
 	/**
+	 * Resizes the current image to the given width and height. Will not keep the current proportion.
+	 * Is the image is larger than the given width and height, the image will be cropped. If the image is smaller than
+	 * the given width and height, there will be colored space added around the image with the given color.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $im = Image::loadFromFile('image.png');
+	 * $im->resizeCanvasCentered(500, 500); // Image will be forcefully cropped or enlarged to 500x500 pixels.
+	 * ```
+	 *
 	 * @param int $width The width of the new image.
 	 * @param int $height The height of the new image.
 	 * @param Color|null $backgroundColor The background color of the new image.
@@ -605,7 +699,8 @@ class Image {
 	 * When omitting the width or height, the current width or height will be used.
 	 *
 	 * Example:
-	 * ```
+	 * ```php
+	 * use Kir\Image\Image;
 	 * $im = Image::loadFromFile('image.png');
 	 * $im->resize(100, 100); // Image will be forcefully resampled into 100x100 pixels.
 	 * ```
@@ -636,7 +731,7 @@ class Image {
 	 * Resize image only if it is larger than the targeted size. The image will be shrinked into a rectangle within the
 	 * given width and height. If the image is already smaller than the given width and height, nothing will happen.
 	 *
-	 * ```
+	 * ```php
 	 * use Kir\Image\Image;
 	 * $image = Image::loadFromFile('image.png');
 	 *
@@ -673,6 +768,13 @@ class Image {
 	 * height. Is only the width or height given, the other value will be calculated automatically. If both width and
 	 * height are given, the image will be fitted into the targeted rectangle.
 	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $image = Image::loadFromFile('image.png');
+	 * $image->resizeProportional(500, 500); // Image will be resampled to 500x500 pixels while keeping the proportion.
+	 * ```
+	 *
 	 * @param int|null $width If null, this value is based on the current proportion of the current canvas.
 	 * @param int|null $height If null, this value is based on the current proportion of the current canvas.
 	 * @return $this The new image.
@@ -691,6 +793,13 @@ class Image {
 	/**
 	 * Fills the current image with the given color.
 	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $im = Image::loadFromFile('image.png');
+	 * $im->fill(0, 0, Color::whiteOpaque());
+	 * ```
+	 *
 	 * @param int $x The horizontal position, left to right.
 	 * @param int $y The vertical position, top to bottom.
 	 * @param Color $color The fill color.
@@ -704,6 +813,14 @@ class Image {
 
 	/**
 	 * Draws a rectangle on the current image.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $im = Image::loadFromFile('image.png');
+	 * $im->rectangle(10, 10, 100, 100, Color::whiteOpaque());
+	 * // Draws a white rectangle on the image. The top-left corner is at 10,10 and the bottom-right corner is at 110,110.
+	 * ```
 	 *
 	 * @param int $x The horizontal position, left to right.
 	 * @param int $y The vertical position, top to bottom.
@@ -721,6 +838,13 @@ class Image {
 	/**
 	 * Saves the current image to a file. The file type will be determined by the file extension of the given filename
 	 * or if $explicitType is set, by that given type.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $im = Image::loadFromFile('image.png');
+	 * $im->saveAs('image.jpg'); // Saves the image as a jpeg image.
+	 * ```
 	 *
 	 * @param string|null $filename The filename of the image.
 	 * @return $this The current image.
@@ -740,6 +864,13 @@ class Image {
 	/**
 	 * Saves the current image as a png image.
 	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $im = Image::loadFromFile('image.png');
+	 * $im->saveAsPng('image.png'); // Saves the image as a png image.
+	 * ```
+	 *
 	 * @param string|null $filename The filename of the image.
 	 * @return $this The current image.
 	 * @throws ImageRuntimeException
@@ -751,6 +882,13 @@ class Image {
 
 	/**
 	 * Saves the current image as a jpeg image.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $im = Image::loadFromFile('image.png');
+	 * $im->saveAsJpeg('image.jpg'); // Saves the image as a jpeg image.
+	 * ```
 	 *
 	 * @param string|null $filename The filename of the image.
 	 * @param int $quality The quality of the image. 0 means worst quality, 100 means best quality.
@@ -765,6 +903,13 @@ class Image {
 	/**
 	 * Saves the current image as a gif image.
 	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $im = Image::loadFromFile('image.png');
+	 * $im->saveAsGif('image.gif'); // Saves the image as a gif image.
+	 * ```
+	 *
 	 * @param string|null $filename The filename of the image.
 	 * @return $this The current image.
 	 * @throws ImageRuntimeException
@@ -776,6 +921,13 @@ class Image {
 
 	/**
 	 * Saves the current image as a webp image.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $im = Image::loadFromFile('image.png');
+	 * $im->saveAsWebP('image.webp'); // Saves the image as a webp image.
+	 * ```
 	 *
 	 * @param string|null $filename The filename of the image.
 	 * @param int $quality The quality of the image. 0 means worst quality, 100 means best quality.
@@ -789,6 +941,13 @@ class Image {
 
 	/**
 	 * Saves the current image as a bmp image.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $im = Image::loadFromFile('image.png');
+	 * $im->saveAsBmp('image.bmp'); // Saves the image as a bmp image.
+	 * ```
 	 *
 	 * @param string|null $filename The filename of the image.
 	 * @return $this The current image.
@@ -821,6 +980,8 @@ class Image {
 	}
 
 	/**
+	 * Create a new color from the given color.
+	 *
 	 * @param GdImage $resource The resource to create the color from.
 	 * @param Color $color The color to create.
 	 * @return int The color code.

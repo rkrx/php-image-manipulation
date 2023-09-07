@@ -471,7 +471,7 @@ class Image {
 	}
 
 	/**
-	 * Resize image only if it is larger than the targeted
+	 * Resize image only if it is larger than the targeted measures
 	 *
 	 * ```
 	 * use Kir\Image\Image;

@@ -1,9 +1,11 @@
 /*
+!/docs
 !/src
 !/tests
 !/.gitignore
 !/composer.json
 !/LICENSE
+!/phpdoc.xml
 !/phpstan.neon
 !/README.md
 !/tests.xml

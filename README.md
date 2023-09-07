@@ -9,6 +9,8 @@ composer require rkr/image
 
 ## Usage
 
+Find more information in the [Documentation](docs/classes/Kir/Image/Image.md).
+
 ### Resample proportionally
 
 ```php
@@ -53,5 +55,3 @@ $image->getCopy()
     ->resizeCanvasCentered(500, 500)
     ->saveAsWebP('500x500.webp');
 ```
-
-Additional documentation will follow...

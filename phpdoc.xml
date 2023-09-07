@@ -1,0 +1,14 @@
+<phpdocumentor configVersion="3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="https://www.phpdoc.org">
+    <paths>
+        <output>docs</output>
+    </paths>
+    <version number="latest">
+        <api>
+            <source dsn=".">
+                <path>src/Image.php</path>
+            </source>
+            <visibility>public</visibility>
+        </api>
+    </version>
+    <template name="./vendor/saggre/phpdocumentor-markdown/themes/markdown"/>
+</phpdocumentor>

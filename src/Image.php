@@ -15,7 +15,7 @@ class Image {
 	private ?int $lastFileType = null;
 
 	/**
-	 * @param string $filename
+	 * @param string $filename The filename of the image.
 	 * @return int
 	 */
 	public static function getImageType(string $filename): int {
@@ -23,18 +23,26 @@ class Image {
 	}
 
 	/**
-	 * @param string $filename
-	 * @return string|null
+	 * Returns the default file extension for a given image type determined using mime_content_type.
+	 *
+	 * @param string $filename The filename of the image.
+	 * @return string|null The file extension of the image determined by using mime_content_type.
 	 */
 	public static function getDefaultImageExtension(string $filename): ?string {
 		return ImageTypeTools::getDefaultImageExtensionFromFile($filename);
 	}
 
 	/**
-	 * Loads an image using all available image functions
+	 * Loads an image using all available image functions.
 	 *
-	 * @param string $data
-	 * @return Image
+	 * Example:
+	 * ```
+	 * $contents = file_get_contents('image.png');
+	 * $image = Image::loadFromString($contents);
+	 * ```
+	 *
+	 * @param string $data The image data.
+	 * @return Image The new image.
 	 */
 	public static function loadFromString(string $data): Image {
 		$resource = ImageTools::nonFalse(fn() => imagecreatefromstring($data));
@@ -43,19 +51,26 @@ class Image {
 	}
 
 	/**
-	 * Loads an image using all available image functions
+	 * Loads an image using all available image functions.
 	 *
-	 * @param string $filename
-	 * @return Image
+	 * Example:
+	 * ```
+	 * $image = Image::loadFromFile('image.png');
+	 * ```
+	 *
+	 * @param string $filename The filename of the image.
+	 * @return Image The new image.
 	 */
 	public static function loadFromFile(string $filename): Image {
 		return ImageFactory::loadImageFromFile($filename);
 	}
 	
 	/**
+	 * Remove the alpha channel from the image. The alpha channel will be replaced with opaque white.
+	 *
 	 * @template T
-	 * @param Image $srcIm
-	 * @param Closure(Image): T $fn
+	 * @param Image $srcIm The source image.
+	 * @param Closure(Image): T $fn The function that will be called with the new image.
 	 * @return void
 	 */
 	private static function removeAlphaChannel(Image $srcIm, Closure $fn) {
@@ -65,10 +80,19 @@ class Image {
 	}
 	
 	/**
-	 * @param int $width
-	 * @param int $height
-	 * @param Color|null $color
-	 * @param int|null $imageType
+	 * Creates a new image resource with the given width and height and a background color.
+	 * Optionally an [image type](https://www.php.net/manual/en/image.constants.php#constant.imagetype-gif)
+	 * can be specified.
+	 *
+	 * Example:
+	 * ```
+	 * $im = Image::create(100, 100, Color::whiteTransparent(), IMAGETYPE_PNG);
+	 * ```
+	 *
+	 * @param int $width The width of the new image.
+	 * @param int $height The height of the new image.
+	 * @param Color|null $color The background color of the new image.
+	 * @param int|null $imageType The image type of the new image.
 	 * @return Image
 	 */
 	public static function create(int $width, int $height, ?Color $color = null, ?int $imageType = null) {
@@ -80,7 +104,7 @@ class Image {
 	}
 
 	/**
-	 * @param GdImage|resource|null $resource
+	 * @param GdImage|resource|null $resource The resource to create the image from.
 	 */
 	public function __construct($resource, ?int $type = null) {
 		if(!($resource instanceof GdImage || is_resource($resource))) {
@@ -96,21 +120,46 @@ class Image {
 	}
 
 	/**
-	 * @return GdImage
+	 * Returns the current image resource as a GdImage object.
+	 *
+	 * Example:
+	 * ```
+	 * $im = Image::create(100, 100, Color::whiteTransparent(), IMAGETYPE_PNG);
+	 * $resource = $im->getGdImage();
+	 * image_jpeg($resource, 'image.jpg');
+	 * ```
+	 *
+	 * @return GdImage The gd image resource.
 	 */
 	public function getGdImage() {
 		return $this->resource;
 	}
 
 	/**
-	 * @return int
+	 * Returns the width of the image. This is the horizontal size in pixels.
+	 *
+	 * Example:
+	 * ```
+	 * $im = Image::loadFromFile('image.png');
+	 * $width = $im->getWidth();
+	 * ```
+	 *
+	 * @return int The image type constant.
 	 */
 	public function getWidth(): int {
 		return imagesx($this->resource);
 	}
 
 	/**
-	 * @return int
+	 * Returns the height of the image. This is the vertical size in pixels.
+	 *
+	 * Example:
+	 * ```
+	 * $im = Image::loadFromFile('image.png');
+	 * $height = $im->getHeight();
+	 * ```
+	 *
+	 * @return int The image type constant.
 	 */
 	public function getHeight(): int {
 		return imagesy($this->resource);
@@ -119,17 +168,31 @@ class Image {
 	/**
 	 * Returns a php gd image format constant-int for a specific format that was used to create this image. If the image
 	 * was created from scratch, and no format was specified, null will be returned.
+	 * See possible [file types](https://www.php.net/manual/en/image.constants.php#constant.imagetype-gif).
 	 *
-	 * @return int|null
+	 * Example:
+	 * ```
+	 * $im = Image::loadFromFile('image.png');
+	 * $fileType = $im->getFileType();
+	 * ```
+	 *
+	 * @return int|null The image type constant.
 	 */
 	public function getFileType(): ?int {
 		return $this->lastFileType;
 	}
 	
 	/**
-	 * The mime type of an image
+	 * The mime-type of an image.
 	 *
-	 * @return string|null
+	 * Example:
+	 * ```
+	 * $im = Image::loadFromFile('image.png');
+	 * $mimeType = $im->getMimeType();
+	 * echo $mimeType; // image/png
+	 * ```
+	 *
+	 * @return string|null The mime type of the image.
 	 */
 	public function getMimeType(): ?string {
 		$fileType = $this->getFileType();
@@ -137,6 +200,14 @@ class Image {
 	}
 
 	/**
+	 * Returns a copy of the current image.
+	 *
+	 * Example:
+	 * ```
+	 * $im = Image::loadFromFile('image.png');
+	 * $copy = $im->getCopy();
+	 * ```
+	 *
 	 * @return Image A copy of the current image.
 	 */
 	public function getCopy(): self {
@@ -150,9 +221,18 @@ class Image {
 	}
 
 	/**
-	 * @param GdImage|resource $targetImage
-	 * @param int $offsetX
-	 * @param int $offsetY
+	 * Place an image onto the current image.
+	 *
+	 * Example:
+	 * ```
+	 * $im = Image::loadFromFile('image.png');
+	 * $logo = Image::loadFromFile('logo.png');
+	 * $im->placeImageOn($logo, 10, 10);
+	 * ```
+	 *
+	 * @param GdImage|resource $targetImage The target image.
+	 * @param int $offsetX The horizontal offset, left to right.
+	 * @param int $offsetY The vertical offset, top to bottom.
 	 * @return self
 	 */
 	public function placeImageOn($targetImage, int $offsetX = 0, int $offsetY = 0): self {
@@ -162,9 +242,18 @@ class Image {
 	}
 
 	/**
-	 * @param int $x
-	 * @param int $y
-	 * @return int
+	 * Returns the red color at the given position. 0 means no red color, 255 means full red color.
+	 *
+	 * Example:
+	 * ```
+	 * $im = Image::loadFromFile('image.png');
+	 * $red = $im->getRedColorAt(10, 10);
+	 * echo $red; // A value between 0 and 255
+	 * ```
+	 *
+	 * @param int $x The horizontal position, left to right.
+	 * @param int $y The vertical position, top to bottom.
+	 * @return int The red color code at the given position. 0 means no red color, 255 means full red color.
 	 * @throws ImageRuntimeException
 	 */
 	public function getRedColorAt(int $x, int $y) {
@@ -172,9 +261,18 @@ class Image {
 	}
 
 	/**
-	 * @param int $x
-	 * @param int $y
-	 * @return int
+	 * Returns the green color at the given position. 0 means no green color, 255 means full green color.
+	 *
+	 * Example:
+	 * ```
+	 * $im = Image::loadFromFile('image.png');
+	 * $green = $im->getGreenColorAt(10, 10);
+	 * echo $green; // A value between 0 and 255
+	 * ```
+	 *
+	 * @param int $x The horizontal position, left to right.
+	 * @param int $y The vertical position, top to bottom.
+	 * @return int The green color at the given position. 0 means no green color, 255 means full green color.
 	 * @throws ImageRuntimeException
 	 */
 	public function getGreenColorAt(int $x, int $y) {
@@ -182,9 +280,18 @@ class Image {
 	}
 
 	/**
-	 * @param int $x
-	 * @param int $y
-	 * @return int
+	 * Returns the blue color at the given position. 0 means no blue color, 255 means full blue color.
+	 *
+	 * Example:
+	 * ```
+	 * $im = Image::loadFromFile('image.png');
+	 * $blue = $im->getBlueColorAt(10, 10);
+	 * echo $blue; // A value between 0 and 255
+	 * ```
+	 *
+	 * @param int $x The horizontal position, left to right.
+	 * @param int $y The vertical position, top to bottom.
+	 * @return int The blue color code at the given position. 0 means no blue color, 255 means full blue color.
 	 * @throws ImageRuntimeException
 	 */
 	public function getBlueColorAt(int $x, int $y) {
@@ -192,9 +299,18 @@ class Image {
 	}
 
 	/**
-	 * @param int $x
-	 * @param int $y
-	 * @return int
+	 * Returns the alpha value at the given position. 0 means no alpha, 255 means full alpha.
+	 *
+	 * Example:
+	 * ```
+	 * $im = Image::loadFromFile('image.png');
+	 * $alpha = $im->getAlphaAt(10, 10);
+	 * echo $alpha; // A value between 0 and 255
+	 * ```
+	 *
+	 * @param int $x The horizontal position, left to right.
+	 * @param int $y The vertical position, top to bottom.
+	 * @return int The alpha value at the given position. 0 means no alpha, 255 means full alpha.
 	 * @throws ImageRuntimeException
 	 */
 	public function getAlphaAt(int $x, int $y) {
@@ -203,9 +319,20 @@ class Image {
 	}
 
 	/**
-	 * @param int $x
-	 * @param int $y
-	 * @return int
+	 * Returns a channel value at the given position. The color value is between 0 and 255 according to the given bit mask.
+	 *
+	 * Example:
+	 * ```
+	 * $im = Image::loadFromFile('image.png');
+	 * $red = $im->getChannelColorAt(10, 10, 0xFF0000);
+	 * $green = $im->getChannelColorAt(10, 10, 0x00FF00);
+	 * $blue = $im->getChannelColorAt(10, 10, 0x0000FF);
+	 * printf("R = %d, G = %d, B = %d\n", $red, $green, $blue);
+	 * ```
+	 *
+	 * @param int $x The horizontal position, left to right.
+	 * @param int $y The vertical position, top to bottom.
+	 * @return int The channel value at the given position. The color value is between 0 and 255 according to the given bit mask.
 	 * @throws ImageRuntimeException
 	 */
 	public function getChannelColorAt(int $x, int $y, int $bitMask) {
@@ -214,6 +341,14 @@ class Image {
 	}
 
 	/**
+	 * Converts the current image to a grey scale image.
+	 *
+	 * Example:
+	 * ```
+	 * $im = Image::loadFromFile('image.png');
+	 * $im->greyscale(); // The image is now a grey scale image.
+	 * ```
+	 *
 	 * @return $this
 	 */
 	public function greyscale() {
@@ -222,8 +357,11 @@ class Image {
 	}
 
 	/**
-	 * @param Image $mask
-	 * @return $this
+	 * Applies an image mask to the current image. The mask image must be a greyscale image. The channel value of the
+	 * mask image will be used as alpha value for the current image.
+	 *
+	 * @param Image $mask The grey scale mask image.
+	 * @return $this The new image.
 	 */
 	public function applyAlphaMaskFromGreyscaleImage(Image $mask): self {
 		$maskIm = $mask->getCopy();
@@ -251,7 +389,9 @@ class Image {
 	}
 
 	/**
-	 * @return $this
+	 * The colors of the image will be adjusted to the full range of 0 to 255.
+	 *
+	 * @return $this The current image.
 	 */
 	public function adjustColors(): self {
 		$res = $this->resource;
@@ -280,7 +420,13 @@ class Image {
 				$r = ($color >> 16) & 255;
 				$g = ($color >> 8) & 255;
 				$b = $color & 255;
-				$c = imagecolorallocatealpha($res, ($r - $cMin) * $f, ($g - $cMin) * $f, ($b - $cMin) * $f, $a);
+				$c = imagecolorallocatealpha(
+					$res,
+					(int) (($r - $cMin) * $f),
+					(int) (($g - $cMin) * $f),
+					(int) (($b - $cMin) * $f),
+					$a
+				);
 				/** @var int $c */
 				imagesetpixel($res, $x, $y, $c);
 			}
@@ -290,10 +436,13 @@ class Image {
 	}
 
 	/**
-	 * @param int $threshold
-	 * @param int $borderPercent
-	 * @param Color|null $backgroundColor
-	 * @return $this
+	 * Remove excess white space around the image. The threshold value is the value of which a non-white color will be
+	 * still treated as white. The border width in percent.
+	 *
+	 * @param int $threshold The threshold value of which a non-white color will be still treated as white. 0 means no threshold, 255 means full threshold.
+	 * @param int $borderPercent The border width in percent. 3 means 3% on each side.
+	 * @param Color|null $backgroundColor The background color of the new image.
+	 * @return $this This instance with a new image resource.
 	 */
 	public function crop(int $threshold = 15, int $borderPercent = 0, ?Color $backgroundColor = null) {
 		if($backgroundColor === null) {
@@ -364,8 +513,8 @@ class Image {
 	}
 
 	/**
-	 * @param int $threshold
-	 * @return array{left: int, top: int, right: int, bottom: int, width: int, height: int}
+	 * @param int $threshold The threshold value of which a non-white color will be still treated as white. 0 means no threshold, 255 means full threshold.
+	 * @return array{left: int, top: int, right: int, bottom: int, width: int, height: int} The measures of the inner object.
 	 */
 	public function detectInnerObject(int $threshold = 15): array {
 		$copy = $this->getCopy();
@@ -416,12 +565,12 @@ class Image {
 	}
 
 	/**
-	 * @param int $width
-	 * @param int $height
-	 * @param int|null $offsetX
-	 * @param int|null $offsetY
-	 * @param Color|null $backgroundColor
-	 * @return $this
+	 * @param int $width The width of the new image.
+	 * @param int $height The height of the new image.
+	 * @param int|null $offsetX The horizontal offset, left to right.
+	 * @param int|null $offsetY The vertical offset, top to bottom.
+	 * @param Color|null $backgroundColor The background color of the new image.
+	 * @return $this This instance with a new image resource.
 	 */
 	public function resizeCanvas(int $width, int $height, ?int $offsetX = null, ?int $offsetY = null, ?Color $backgroundColor = null) {
 		$intOffsetX = $offsetX ?? (int) round(floor($width / 2) - floor($this->getWidth() / 2));
@@ -439,10 +588,10 @@ class Image {
 	}
 
 	/**
-	 * @param int $width
-	 * @param int $height
-	 * @param Color|null $backgroundColor
-	 * @return $this
+	 * @param int $width The width of the new image.
+	 * @param int $height The height of the new image.
+	 * @param Color|null $backgroundColor The background color of the new image.
+	 * @return $this This instance with a new image resource.
 	 */
 	public function resizeCanvasCentered(int $width, int $height, ?Color $backgroundColor = null) {
 		$absoluteOffsetX = (int) round($width / 2 - $this->getWidth() / 2);
@@ -452,11 +601,24 @@ class Image {
 	}
 
 	/**
-	 * @param int|null $width
-	 * @param int|null $height
-	 * @return $this
+	 * Resizes the current image to the given width and height. Will **not** keep the current proportion.
+	 * When omitting the width or height, the current width or height will be used.
+	 *
+	 * Example:
+	 * ```
+	 * $im = Image::loadFromFile('image.png');
+	 * $im->resize(100, 100); // Image will be forcefully resampled into 100x100 pixels.
+	 * ```
+	 *
+	 * @param int|null $width If null, this value is based on the width of the current canvas.
+	 * @param int|null $height If null, this value is based on the height of the current canvas.
+	 * @return $this This instance with a new image resource.
 	 */
 	public function resize(?int $width = null, ?int $height = null) {
+		if($width === null && $height === null) {
+			return $this;
+		}
+
 		$width = $width ?? $this->getWidth();
 		$height = $height ?? $this->getHeight();
 
@@ -471,7 +633,8 @@ class Image {
 	}
 
 	/**
-	 * Resize image only if it is larger than the targeted measures
+	 * Resize image only if it is larger than the targeted size. The image will be shrinked into a rectangle within the
+	 * given width and height. If the image is already smaller than the given width and height, nothing will happen.
 	 *
 	 * ```
 	 * use Kir\Image\Image;
@@ -483,9 +646,9 @@ class Image {
 	 * $newImage->saveAsWebP('500x500.webp');
 	 * ```
 	 *
-	 * @param int|null $width
-	 * @param int|null $height
-	 * @return $this
+	 * @param int|null $width If null, this value is based on the current proportion of the current canvas.
+	 * @param int|null $height If null, this value is based on the current proportion of the current canvas.
+	 * @return $this The new image.
 	 */
 	public function shrinkProportional(?int $width = null, ?int $height = null) {
 		$origWidth = $this->getWidth();
@@ -506,11 +669,13 @@ class Image {
 	}
 
 	/**
-	 * Resize an image proportionally.
+	 * Resize an image proportionally. The image will be shrinked or enlarged to a rectangle within the given width and
+	 * height. Is only the width or height given, the other value will be calculated automatically. If both width and
+	 * height are given, the image will be fitted into the targeted rectangle.
 	 *
-	 * @param int|null $width If zero, this value is based on the current proportion of the current canvas.
-	 * @param int|null $height If zero, this value is based on the current proportion of the current canvas.
-	 * @return $this
+	 * @param int|null $width If null, this value is based on the current proportion of the current canvas.
+	 * @param int|null $height If null, this value is based on the current proportion of the current canvas.
+	 * @return $this The new image.
 	 */
 	public function resizeProportional(?int $width = null, ?int $height = null) {
 		$sourceW = $this->getWidth();
@@ -524,10 +689,12 @@ class Image {
 	}
 
 	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param Color $color
-	 * @return $this
+	 * Fills the current image with the given color.
+	 *
+	 * @param int $x The horizontal position, left to right.
+	 * @param int $y The vertical position, top to bottom.
+	 * @param Color $color The fill color.
+	 * @return $this The current image.
 	 */
 	public function fill(int $x, int $y, Color $color): self {
 		$colorCode = self::createGdColorFromColor($this->resource, $color);
@@ -536,12 +703,14 @@ class Image {
 	}
 
 	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $width
-	 * @param int $height
-	 * @param Color $color
-	 * @return $this
+	 * Draws a rectangle on the current image.
+	 *
+	 * @param int $x The horizontal position, left to right.
+	 * @param int $y The vertical position, top to bottom.
+	 * @param int $width The width of the rectangle.
+	 * @param int $height The height of the rectangle.
+	 * @param Color $color The fill color.
+	 * @return $this The current image.
 	 */
 	public function rectangle(int $x, int $y, int $width, int $height, Color $color) {
 		$gdColor = self::createGdColorFromColor($this->resource, $color);
@@ -550,8 +719,11 @@ class Image {
 	}
 
 	/**
-	 * @param string|null $filename
-	 * @return $this
+	 * Saves the current image to a file. The file type will be determined by the file extension of the given filename
+	 * or if $explicitType is set, by that given type.
+	 *
+	 * @param string|null $filename The filename of the image.
+	 * @return $this The current image.
 	 * @throws ImageRuntimeException
 	 */
 	public function saveAs(?string $filename, ?int $explicitType = null): self {
@@ -566,8 +738,10 @@ class Image {
 	}
 
 	/**
-	 * @param string|null $filename
-	 * @return $this
+	 * Saves the current image as a png image.
+	 *
+	 * @param string|null $filename The filename of the image.
+	 * @return $this The current image.
 	 * @throws ImageRuntimeException
 	 */
 	public function saveAsPng(?string $filename = null): self {
@@ -576,9 +750,11 @@ class Image {
 	}
 
 	/**
-	 * @param string|null $filename
-	 * @param int $quality
-	 * @return $this
+	 * Saves the current image as a jpeg image.
+	 *
+	 * @param string|null $filename The filename of the image.
+	 * @param int $quality The quality of the image. 0 means worst quality, 100 means best quality.
+	 * @return $this The current image.
 	 * @throws ImageRuntimeException
 	 */
 	public function saveAsJpeg(?string $filename = null, int $quality = 100): self {
@@ -587,8 +763,10 @@ class Image {
 	}
 
 	/**
-	 * @param string|null $filename
-	 * @return $this
+	 * Saves the current image as a gif image.
+	 *
+	 * @param string|null $filename The filename of the image.
+	 * @return $this The current image.
 	 * @throws ImageRuntimeException
 	 */
 	public function saveAsGif(?string $filename = null): self {
@@ -597,9 +775,11 @@ class Image {
 	}
 
 	/**
-	 * @param string|null $filename
-	 * @param int $quality
-	 * @return $this
+	 * Saves the current image as a webp image.
+	 *
+	 * @param string|null $filename The filename of the image.
+	 * @param int $quality The quality of the image. 0 means worst quality, 100 means best quality.
+	 * @return $this The current image.
 	 * @throws ImageRuntimeException
 	 */
 	public function saveAsWebP(?string $filename = null, int $quality = 100): self {
@@ -608,8 +788,10 @@ class Image {
 	}
 
 	/**
-	 * @param string|null $filename
-	 * @return $this
+	 * Saves the current image as a bmp image.
+	 *
+	 * @param string|null $filename The filename of the image.
+	 * @return $this The current image.
 	 * @throws ImageRuntimeException
 	 */
 	public function saveAsBmp(?string $filename = null): self {
@@ -618,9 +800,12 @@ class Image {
 	}
 
 	/**
-	 * @param int $width
-	 * @param int $height
-	 * @return GdImage
+	 * Creates a new image resource with the given width and height and fills it with the given color.
+	 * Alpha blending will be enabled.
+	 *
+	 * @param int $width The width of the new image.
+	 * @param int $height The height of the new image.
+	 * @return GdImage The new image resource.
 	 */
 	private static function createResource(int $width, int $height, ?Color $color = null) {
 		if($color === null) {
@@ -636,9 +821,9 @@ class Image {
 	}
 
 	/**
-	 * @param GdImage $resource
-	 * @param Color $color
-	 * @return int
+	 * @param GdImage $resource The resource to create the color from.
+	 * @param Color $color The color to create.
+	 * @return int The color code.
 	 */
 	private static function createGdColorFromColor($resource, Color $color): int {
 		$red = $color->getRed();

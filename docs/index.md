@@ -23,4 +23,4 @@ This is an automatically generated documentation for **Documentation**.
 
 
 ***
-> Automatically generated from source code comments on 2023-09-07 using [phpDocumentor](http://www.phpdoc.org/) and [saggre/phpdocumentor-markdown](https://github.com/Saggre/phpDocumentor-markdown)
+> Automatically generated from source code comments on 2024-01-15 using [phpDocumentor](http://www.phpdoc.org/) and [saggre/phpdocumentor-markdown](https://github.com/Saggre/phpDocumentor-markdown)

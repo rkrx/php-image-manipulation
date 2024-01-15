@@ -91,9 +91,9 @@ class Image {
 	 * @param Closure(Image): T $fn The function that will be called with the new image.
 	 * @return void
 	 */
-	private static function removeAlphaChannel(Image $srcIm, Closure $fn) {
+	private static function temporaryRemoveAlphaChannel(Image $srcIm, Closure $fn) {
 		$newBackground = Image::create($srcIm->getWidth(), $srcIm->getHeight(), Color::whiteOpaque(), $srcIm->getFileType());
-		$srcIm->placeImageOn($newBackground->getGdImage());
+		$srcIm->pasteOn($newBackground->getGdImage());
 		$fn($newBackground);
 	}
 	
@@ -244,7 +244,15 @@ class Image {
 		imagecopy($im->getGdImage(), $this->resource, 0, 0, 0, 0, $width, $height);
 		return $im;
 	}
-
+	
+	/**
+	 * @deprecated Use {@see Image::pasteOn()} instead.
+	 * @param Image|GdImage|resource $targetImage
+	 */
+	public function placeImageOn($targetImage, int $offsetX = 0, int $offsetY = 0): self {
+		return $this->pasteOn($targetImage, $offsetX, $offsetY);
+	}
+	
 	/**
 	 * Place an image onto the current image.
 	 *
@@ -256,12 +264,15 @@ class Image {
 	 * $im->placeImageOn($logo, 10, 10);
 	 * ```
 	 *
-	 * @param GdImage|resource $targetImage The target image.
+	 * @param Image|GdImage|resource $targetImage The target image.
 	 * @param int $offsetX The horizontal offset, left to right.
 	 * @param int $offsetY The vertical offset, top to bottom.
 	 * @return self
 	 */
-	public function placeImageOn($targetImage, int $offsetX = 0, int $offsetY = 0): self {
+	public function pasteOn($targetImage, int $offsetX = 0, int $offsetY = 0): self {
+		if($targetImage instanceof Image) {
+			$targetImage = $targetImage->getGdImage();
+		}
 		/** @var GdImage $targetImage */
 		imagecopy($targetImage, $this->resource, $offsetX, $offsetY, 0, 0, $this->getWidth(), $this->getHeight());
 		return $this;
@@ -834,6 +845,19 @@ class Image {
 		imagefilledrectangle($this->resource, $x, $y, $x + $width - 1, $y + $height - 1, $gdColor);
 		return $this;
 	}
+	
+	/**
+	 * Set the alpha channel of an image to
+	 *
+	 * @return $this
+	 */
+	public function removeAlphaBackground(?Color $color = null): self {
+		$color = $color ?? Color::whiteOpaque();
+		$newBackground = Image::create($this->getWidth(), $this->getHeight(), $color);
+		$this->pasteOn($newBackground->getGdImage());
+		$this->resource = $newBackground->getGdImage();
+		return $this;
+	}
 
 	/**
 	 * Saves the current image to a file. The file type will be determined by the file extension of the given filename
@@ -896,7 +920,7 @@ class Image {
 	 * @throws ImageRuntimeException
 	 */
 	public function saveAsJpeg(?string $filename = null, int $quality = 100): self {
-		self::removeAlphaChannel($this, fn(Image $im) => imagejpeg($im->getGdImage(), $filename, $quality));
+		self::temporaryRemoveAlphaChannel($this, static fn(Image $im) => imagejpeg($im->getGdImage(), $filename, $quality));
 		return $this;
 	}
 
@@ -915,7 +939,7 @@ class Image {
 	 * @throws ImageRuntimeException
 	 */
 	public function saveAsGif(?string $filename = null): self {
-		self::removeAlphaChannel($this, fn(Image $im) => imagegif($im->getGdImage(), $filename));
+		self::temporaryRemoveAlphaChannel($this, static fn(Image $im) => imagegif($im->getGdImage(), $filename));
 		return $this;
 	}
 
@@ -954,8 +978,45 @@ class Image {
 	 * @throws ImageRuntimeException
 	 */
 	public function saveAsBmp(?string $filename = null): self {
-		self::removeAlphaChannel($this, fn(Image $im) => imagebmp($im->getGdImage(), $filename));
+		self::temporaryRemoveAlphaChannel($this, static fn(Image $im) => imagebmp($im->getGdImage(), $filename));
 		return $this;
+	}
+	
+	/**
+	 * Saves the current image as a string.
+	 *
+	 * @param int|null $imageType
+	 * @return string
+	 * @throws ImageRuntimeException
+	 */
+	public function saveAsString(?int $imageType = null, int $quality = 100): string {
+		$type = $imageType ?? $this->lastFileType;
+		ob_start();
+		try {
+			switch ($type) {
+				case IMAGETYPE_GIF :
+					$this->saveAsGif('php://output');
+					break;
+				case IMAGETYPE_PNG :
+					$this->saveAsPng('php://output');
+					break;
+				case IMAGETYPE_BMP :
+					$this->saveAsBmp('php://output');
+					break;
+				case IMAGETYPE_WEBP:
+					$this->saveAsWebP('php://output', $quality);
+					break;
+				default:
+					$this->saveAsJpeg('php://output', $quality);
+			}
+			$contents = ob_get_contents();
+			if($contents === false) {
+				throw new ImageRuntimeException('Could not get image contents');
+			}
+			return $contents;
+		} finally {
+			ob_end_clean();
+		}
 	}
 
 	/**

@@ -667,6 +667,10 @@ class Image {
 	 * @return $this This instance with a new image resource.
 	 */
 	public function resizeCanvas(int $width, int $height, ?int $offsetX = null, ?int $offsetY = null, ?Color $backgroundColor = null) {
+		if($width === $this->getWidth() && $height === $this->getHeight()) {
+			return $this;
+		}
+		
 		$intOffsetX = $offsetX ?? (int) round(floor($width / 2) - floor($this->getWidth() / 2));
 		$intOffsetY = $offsetY ?? (int) round(floor($height / 2) - floor($this->getHeight() / 2));
 		$backgroundColor = $backgroundColor ?? Color::whiteOpaque();
@@ -724,6 +728,10 @@ class Image {
 		if($width === null && $height === null) {
 			return $this;
 		}
+		
+		if($width === $this->getWidth() && $height === $this->getHeight()) {
+			return $this;
+		}
 
 		$width = $width ?? $this->getWidth();
 		$height = $height ?? $this->getHeight();
@@ -760,7 +768,7 @@ class Image {
 		$origWidth = $this->getWidth();
 		$origHeight = $this->getHeight();
 
-		if($origWidth < $width && $origHeight < $height) {
+		if($origWidth <= $width && $origHeight <= $height) {
 			return $this;
 		}
 
@@ -791,6 +799,14 @@ class Image {
 	 * @return $this The new image.
 	 */
 	public function resizeProportional(?int $width = null, ?int $height = null) {
+		if($width === null && $height === null) {
+			return $this;
+		}
+		
+		if($width === $this->getWidth() && $height === $this->getHeight()) {
+			return $this;
+		}
+		
 		$sourceW = $this->getWidth();
 		$sourceH = $this->getHeight();
 
@@ -798,6 +814,33 @@ class Image {
 
 		$this->resize($targetWidth, $targetHeight);
 
+		return $this;
+	}
+	
+	/**
+	 * Resize an image proportionally. The image will be enlarged to the given width and height. Is only the width or
+	 *  height given, the other value will be calculated automatically. If both width and height are given, the image
+	 *  will be fitted into the targeted rectangle.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $image = Image::loadFromFile('image.png');
+	 * $image->enlargeProportional(500, 500); // Image will be resampled to 500x500 pixels while keeping the proportion.
+	 * ```
+	 *
+	 * @param int|null $width If null, this value is based on the current proportion of the current canvas.
+	 * @param int|null $height If null, this value is based on the current proportion of the current canvas.
+	 * @return $this The new image.
+	 */
+	public function enlargeProportional(?int $width = null, ?int $height = null): self {
+		$w = $width ?? $this->getWidth();
+		$h = $height ?? $this->getHeight();
+		
+		if($w < $this->getWidth() || $h < $this->getHeight()) {
+			$this->resizeProportional($w, $h);
+		}
+		
 		return $this;
 	}
 

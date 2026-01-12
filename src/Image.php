@@ -135,7 +135,9 @@ class Image {
 	}
 
 	public function __destruct() {
-		imagedestroy($this->resource);
+		if(PHP_VERSION_ID < 80000) {
+			imagedestroy($this->resource);
+		}
 	}
 
 	/**
@@ -433,7 +435,9 @@ class Image {
 			}
 		}
 
-		imagedestroy($this->resource);
+		if(PHP_VERSION_ID < 80000) {
+			imagedestroy($this->resource);
+		}
 		$this->resource = $dstRes;
 
 		return $this;
@@ -576,7 +580,9 @@ class Image {
 		imagefill($newRes, 0, 0, self::createGdColorFromColor($newRes, $backgroundColor));
 		imagecopy($newRes, $this->resource, $dstOffsetX, $dstOffsetY, $srcOffsetX, $srcOffsetY, $srcWidth, $srcHeight);
 
-		imagedestroy($this->resource);
+		if(PHP_VERSION_ID < 80000) {
+			imagedestroy($this->resource);
+		}
 		$this->resource = $newRes;
 
 		return $this;
@@ -624,7 +630,9 @@ class Image {
 				}
 				return 0;
 			} finally {
-				imagedestroy($tmp);
+				if(PHP_VERSION_ID < 80000) {
+					imagedestroy($tmp);
+				}
 			}
 		};
 
@@ -679,7 +687,9 @@ class Image {
 		imagefill($newResource, 0, 0, self::createGdColorFromColor($this->resource, $backgroundColor));
 		imagecopyresampled($newResource, $this->resource, $intOffsetX, $intOffsetY, 0, 0, $this->getWidth(), $this->getHeight(), $this->getWidth(), $this->getHeight());
 
-		imagedestroy($this->resource);
+		if(PHP_VERSION_ID < 80000) {
+			imagedestroy($this->resource);
+		}
 		$this->resource = $newResource;
 
 		return $this;
@@ -740,7 +750,9 @@ class Image {
 
 		$resource = self::createResource($width, $height);
 		imagecopyresampled($resource, $sourceIm, 0, 0, 0, 0, $width, $height, $this->getWidth(), $this->getHeight());
-		imagedestroy($this->resource);
+		if(PHP_VERSION_ID < 80000) {
+			imagedestroy($this->resource);
+		}
 		$this->resource = $resource;
 
 		return $this;

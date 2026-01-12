@@ -25,7 +25,9 @@ class ImageFactory {
 			imagecopy($image->getGdImage(), $resource, 0, 0, 0, 0, $w, $h);
 			return $image;
 		} finally {
-			imagedestroy($resource);
+			if(PHP_VERSION_ID < 80000) {
+				imagedestroy($resource);
+			}
 		}
 	}
 	

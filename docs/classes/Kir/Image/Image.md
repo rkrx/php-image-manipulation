@@ -1034,6 +1034,44 @@ The new image.
 
 ***
 
+### enlargeProportional
+
+Resize an image proportionally. The image will be enlarged to the given width and height. Is only the width or
+ height given, the other value will be calculated automatically. If both width and height are given, the image
+ will be fitted into the targeted rectangle.
+
+```php
+public enlargeProportional(int|null $width = null, int|null $height = null): $this
+```
+
+Example:
+```php
+use Kir\Image\Image;
+$image = Image::loadFromFile('image.png');
+$image->enlargeProportional(500, 500); // Image will be resampled to 500x500 pixels while keeping the proportion.
+```
+
+
+
+
+
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$width` | **int&#124;null** | If null, this value is based on the current proportion of the current canvas. |
+| `$height` | **int&#124;null** | If null, this value is based on the current proportion of the current canvas. |
+
+
+**Return Value:**
+
+The new image.
+
+
+
+***
+
 ### fill
 
 Fills the current image with the given color.
@@ -1106,6 +1144,86 @@ $im->rectangle(10, 10, 100, 100, Color::whiteOpaque());
 **Return Value:**
 
 The current image.
+
+
+
+***
+
+### measureText
+
+Measures a text string using a TrueType font. This requires GD to be compiled with FreeType support.
+
+```php
+public measureText(string $text, string $fontFile, float $fontSize, float $angle = 0.0): array{width: int, height: int, offsetX: int, offsetY: int, bbox: array{0: int, 1: int, 2: int, 3: int, 4: int, 5: int, 6: int, 7: int}}
+```
+
+The returned offsets can be used to convert a desired top-left position into the baseline position required by
+{@see \Kir\Image\Image::text()} / {@see \Kir\Image\imagettftext()}.
+
+Example:
+```php
+use Kir\Image\Image;
+$im = Image::create(300, 120);
+$m = $im->measureText('Hello', __DIR__.'/Roboto-Regular.ttf', 24);
+// $m['width'], $m['height'], $m['offsetX'], $m['offsetY']
+```
+
+
+
+
+
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$text` | **string** | The text to measure. |
+| `$fontFile` | **string** | Path to a .ttf/.otf font file. |
+| `$fontSize` | **float** | The font size in points. |
+| `$angle` | **float** | Rotation angle in degrees. |
+
+
+
+
+***
+
+### text
+
+Draws a text string using a TrueType font. This requires GD to be compiled with FreeType support.
+
+```php
+public text(string $text, int $x, int $y, string $fontFile, float $fontSize, \Kir\Image\Color $color, float $angle = 0.0, string $anchor = &#039;top-left&#039;): $this
+```
+
+By default, `$x` and `$y` are interpreted as the top-left corner of the text bounding box (`$anchor = "top-left"`).
+Other anchors are supported to ease centering.
+
+Example:
+```php
+use Kir\Image\Image;
+use Kir\Image\Color;
+$im = Image::create(600, 240, Color::whiteOpaque());
+$im->text('Hello World', 300, 120, __DIR__.'/Roboto-Regular.ttf', 42, Color::fromRGB(0, 0, 0), 0, 'center');
+```
+
+
+
+
+
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$text` | **string** | The text to render. |
+| `$x` | **int** | X position according to `$anchor`. |
+| `$y` | **int** | Y position according to `$anchor`. |
+| `$fontFile` | **string** | Path to a .ttf/.otf font file. |
+| `$fontSize` | **float** | The font size in points. |
+| `$color` | **\Kir\Image\Color** | The text color. |
+| `$angle` | **float** | Rotation angle in degrees. |
+| `$anchor` | **string** | One of: top-left, top, top-right, left, center, right, bottom-left, bottom, bottom-right, baseline-left. |
+
 
 
 
@@ -1380,4 +1498,4 @@ public saveAsString(int|null $imageType = null, int $quality = 100): string
 
 
 ***
-> Automatically generated from source code comments on 2024-01-15 using [phpDocumentor](http://www.phpdoc.org/) and [saggre/phpdocumentor-markdown](https://github.com/Saggre/phpDocumentor-markdown)
+> Automatically generated from source code comments on 2026-01-12 using [phpDocumentor](http://www.phpdoc.org/) and [saggre/phpdocumentor-markdown](https://github.com/Saggre/phpDocumentor-markdown)

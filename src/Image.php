@@ -900,6 +900,150 @@ class Image {
 		imagefilledrectangle($this->resource, $x, $y, $x + $width - 1, $y + $height - 1, $gdColor);
 		return $this;
 	}
+
+	/**
+	 * Measures a text string using a TrueType font. This requires GD to be compiled with FreeType support.
+	 *
+	 * The returned offsets can be used to convert a desired top-left position into the baseline position required by
+	 * {@see Image::text()} / {@see imagettftext()}.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * $im = Image::create(300, 120);
+	 * $m = $im->measureText('Hello', __DIR__.'/Roboto-Regular.ttf', 24);
+	 * // $m['width'], $m['height'], $m['offsetX'], $m['offsetY']
+	 * ```
+	 *
+	 * @param string $text The text to measure.
+	 * @param string $fontFile Path to a .ttf/.otf font file.
+	 * @param float $fontSize The font size in points.
+	 * @param float $angle Rotation angle in degrees.
+	 * @return array{width:int, height:int, offsetX:int, offsetY:int, bbox:array{0:int,1:int,2:int,3:int,4:int,5:int,6:int,7:int}}
+	 */
+	public function measureText(string $text, string $fontFile, float $fontSize, float $angle = 0.0): array {
+		if(!function_exists('imagettfbbox')) {
+			throw new ImageRuntimeException('TrueType text rendering is not available (GD FreeType support missing)');
+		}
+		if(!is_file($fontFile) || !is_readable($fontFile)) {
+			throw new ImageRuntimeException("Font file not found or not readable: {$fontFile}");
+		}
+		if($fontSize <= 0) {
+			throw new ImageRuntimeException('Font size must be greater than 0');
+		}
+
+		/** @var array{0:int,1:int,2:int,3:int,4:int,5:int,6:int,7:int} $bbox */
+		$bbox = ImageTools::nonFalse(static fn() => imagettfbbox($fontSize, $angle, $fontFile, $text));
+		$xs = [$bbox[0], $bbox[2], $bbox[4], $bbox[6]];
+		$ys = [$bbox[1], $bbox[3], $bbox[5], $bbox[7]];
+
+		$minX = min(...$xs);
+		$maxX = max(...$xs);
+		$minY = min(...$ys);
+		$maxY = max(...$ys);
+
+		return [
+			'width' => (int) ($maxX - $minX),
+			'height' => (int) ($maxY - $minY),
+			'offsetX' => (int) -$minX,
+			'offsetY' => (int) -$minY,
+			'bbox' => $bbox,
+		];
+	}
+
+	/**
+	 * Draws a text string using a TrueType font. This requires GD to be compiled with FreeType support.
+	 *
+	 * By default, `$x` and `$y` are interpreted as the top-left corner of the text bounding box (`$anchor = "top-left"`).
+	 * Other anchors are supported to ease centering.
+	 *
+	 * Example:
+	 * ```php
+	 * use Kir\Image\Image;
+	 * use Kir\Image\Color;
+	 * $im = Image::create(600, 240, Color::whiteOpaque());
+	 * $im->text('Hello World', 300, 120, __DIR__.'/Roboto-Regular.ttf', 42, Color::fromRGB(0, 0, 0), 0, 'center');
+	 * ```
+	 *
+	 * @param string $text The text to render.
+	 * @param int $x X position according to `$anchor`.
+	 * @param int $y Y position according to `$anchor`.
+	 * @param string $fontFile Path to a .ttf/.otf font file.
+	 * @param float $fontSize The font size in points.
+	 * @param Color $color The text color.
+	 * @param float $angle Rotation angle in degrees.
+	 * @param string $anchor One of: top-left, top, top-right, left, center, right, bottom-left, bottom, bottom-right, baseline-left.
+	 * @return $this
+	 */
+	public function text(
+		string $text,
+		int $x,
+		int $y,
+		string $fontFile,
+		float $fontSize,
+		Color $color,
+		float $angle = 0.0,
+		string $anchor = 'top-left'
+	): self {
+		if(!function_exists('imagettftext')) {
+			throw new ImageRuntimeException('TrueType text rendering is not available (GD FreeType support missing)');
+		}
+
+		$m = $this->measureText($text, $fontFile, $fontSize, $angle);
+		$w = $m['width'];
+		$h = $m['height'];
+
+		$dx = 0.0;
+		$dy = 0.0;
+		switch ($anchor) {
+			case 'top-left':
+				break;
+			case 'top':
+				$dx = -$w / 2;
+				break;
+			case 'top-right':
+				$dx = -$w;
+				break;
+			case 'left':
+				$dy = -$h / 2;
+				break;
+			case 'center':
+				$dx = -$w / 2;
+				$dy = -$h / 2;
+				break;
+			case 'right':
+				$dx = -$w;
+				$dy = -$h / 2;
+				break;
+			case 'bottom-left':
+				$dy = -$h;
+				break;
+			case 'bottom':
+				$dx = -$w / 2;
+				$dy = -$h;
+				break;
+			case 'bottom-right':
+				$dx = -$w;
+				$dy = -$h;
+				break;
+			case 'baseline-left':
+				// x/y are already baseline coords for imagettftext()
+				$baselineX = $x;
+				$baselineY = $y;
+				$gdColor = self::createGdColorFromColor($this->resource, $color);
+				ImageTools::nonFalse(static fn() => imagettftext($this->resource, $fontSize, $angle, $baselineX, $baselineY, $gdColor, $fontFile, $text));
+				return $this;
+			default:
+				throw new ImageRuntimeException("Unsupported text anchor: {$anchor}");
+		}
+
+		$baselineX = (int) round($x + $dx + $m['offsetX']);
+		$baselineY = (int) round($y + $dy + $m['offsetY']);
+
+		$gdColor = self::createGdColorFromColor($this->resource, $color);
+		ImageTools::nonFalse(static fn() => imagettftext($this->resource, $fontSize, $angle, $baselineX, $baselineY, $gdColor, $fontFile, $text));
+		return $this;
+	}
 	
 	/**
 	 * Set the alpha channel of an image to

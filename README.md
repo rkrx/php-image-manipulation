@@ -9,7 +9,7 @@ composer require rkr/image
 
 ## Usage (PHP 8.2)
 
-More information is also available in the generated docs: `docs/classes/Kir/Image/Image.md`.
+More information is also available in the [generated docs](docs/classes/Kir/Image/Image.md).
 
 ### Resample proportionally
 

@@ -82,7 +82,7 @@ The file extension of the image determined by using mime_content_type.
 
 ### loadFromString
 
-Loads an image using all available image functions.
+Loads an image from raw bytes using PHP-GD's automatic format detection.
 
 ```php
 public static loadFromString(string $data): \Kir\Image\Image
@@ -117,7 +117,8 @@ The new image.
 
 ### loadFromFile
 
-Loads an image using all available image functions.
+Loads an image from a file using all available PHP-GD readers. This includes AVIF, BMP, GIF, JPEG, PNG, WBMP,
+WebP, XBM, XPM, TGA, GD and GD2 when the respective format is enabled in the installed GD build.
 
 ```php
 public static loadFromFile(string $filename): \Kir\Image\Image
@@ -190,7 +191,7 @@ $im = Image::create(100, 100, Color::whiteTransparent(), IMAGETYPE_PNG);
 
 
 ```php
-public __construct(\GdImage|resource|null $resource, ?int $type = null): mixed
+public __construct(\GdImage $resource, ?int $type = null): mixed
 ```
 
 
@@ -204,28 +205,8 @@ public __construct(\GdImage|resource|null $resource, ?int $type = null): mixed
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `$resource` | **\GdImage&#124;resource&#124;null** | The resource to create the image from. |
+| `$resource` | **\GdImage** | The GD image to wrap. |
 | `$type` | **?int** |  |
-
-
-
-
-***
-
-### __destruct
-
-
-
-```php
-public __destruct(): mixed
-```
-
-
-
-
-
-
-
 
 
 
@@ -416,7 +397,7 @@ A copy of the current image.
 
 
 ```php
-public placeImageOn(\Kir\Image\Image|\GdImage|resource $targetImage, int $offsetX, int $offsetY): self
+public placeImageOn(\Kir\Image\Image|\GdImage $targetImage, int $offsetX, int $offsetY): self
 ```
 
 
@@ -432,7 +413,7 @@ public placeImageOn(\Kir\Image\Image|\GdImage|resource $targetImage, int $offset
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `$targetImage` | **\Kir\Image\Image&#124;\GdImage&#124;resource** |  |
+| `$targetImage` | **\Kir\Image\Image&#124;\GdImage** |  |
 | `$offsetX` | **int** |  |
 | `$offsetY` | **int** |  |
 
@@ -446,7 +427,7 @@ public placeImageOn(\Kir\Image\Image|\GdImage|resource $targetImage, int $offset
 Place an image onto the current image.
 
 ```php
-public pasteOn(\Kir\Image\Image|\GdImage|resource $targetImage, int $offsetX, int $offsetY): self
+public pasteOn(\Kir\Image\Image|\GdImage $targetImage, int $offsetX, int $offsetY): self
 ```
 
 Example:
@@ -466,7 +447,7 @@ $im->placeImageOn($logo, 10, 10);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `$targetImage` | **\Kir\Image\Image&#124;\GdImage&#124;resource** | The target image. |
+| `$targetImage` | **\Kir\Image\Image&#124;\GdImage** | The target image. |
 | `$offsetX` | **int** | The horizontal offset, left to right. |
 | `$offsetY` | **int** | The vertical offset, top to bottom. |
 
@@ -1498,4 +1479,4 @@ public saveAsString(int|null $imageType = null, int $quality = 100): string
 
 
 ***
-> Automatically generated from source code comments on 2026-01-12 using [phpDocumentor](http://www.phpdoc.org/) and [saggre/phpdocumentor-markdown](https://github.com/Saggre/phpDocumentor-markdown)
+> Automatically generated from source code comments on 2026-07-31 using [phpDocumentor](http://www.phpdoc.org/) and [saggre/phpdocumentor-markdown](https://github.com/Saggre/phpDocumentor-markdown)

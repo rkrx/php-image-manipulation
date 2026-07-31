@@ -49,7 +49,7 @@ class Image {
 	}
 
 	/**
-	 * Loads an image using all available image functions.
+	 * Loads an image from raw bytes using PHP-GD's automatic format detection.
 	 *
 	 * Example:
 	 * ```php
@@ -68,7 +68,8 @@ class Image {
 	}
 
 	/**
-	 * Loads an image using all available image functions.
+	 * Loads an image from a file using all available PHP-GD readers. This includes AVIF, BMP, GIF, JPEG, PNG, WBMP,
+	 * WebP, XBM, XPM, TGA, GD and GD2 when the respective format is enabled in the installed GD build.
 	 *
 	 * Example:
 	 * ```php
@@ -123,21 +124,11 @@ class Image {
 	}
 
 	/**
-	 * @param GdImage|resource|null $resource The resource to create the image from.
+	 * @param GdImage $resource The GD image to wrap.
 	 */
-	public function __construct($resource, ?int $type = null) {
-		if(!($resource instanceof GdImage || is_resource($resource))) {
-			throw new ImageRuntimeException('Invalid resource');
-		}
-		/** @var GdImage $resource */
+	public function __construct(GdImage $resource, ?int $type = null) {
 		$this->resource = $resource;
 		$this->lastFileType = $type;
-	}
-
-	public function __destruct() {
-		if(PHP_VERSION_ID < 80000) {
-			imagedestroy($this->resource);
-		}
 	}
 
 	/**
@@ -249,9 +240,9 @@ class Image {
 	
 	/**
 	 * @deprecated Use {@see Image::pasteOn()} instead.
-	 * @param Image|GdImage|resource $targetImage
+	 * @param Image|GdImage $targetImage
 	 */
-	public function placeImageOn($targetImage, int $offsetX = 0, int $offsetY = 0): self {
+	public function placeImageOn(Image|GdImage $targetImage, int $offsetX = 0, int $offsetY = 0): self {
 		return $this->pasteOn($targetImage, $offsetX, $offsetY);
 	}
 	
@@ -266,16 +257,15 @@ class Image {
 	 * $im->placeImageOn($logo, 10, 10);
 	 * ```
 	 *
-	 * @param Image|GdImage|resource $targetImage The target image.
+	 * @param Image|GdImage $targetImage The target image.
 	 * @param int $offsetX The horizontal offset, left to right.
 	 * @param int $offsetY The vertical offset, top to bottom.
 	 * @return self
 	 */
-	public function pasteOn($targetImage, int $offsetX = 0, int $offsetY = 0): self {
+	public function pasteOn(Image|GdImage $targetImage, int $offsetX = 0, int $offsetY = 0): self {
 		if($targetImage instanceof Image) {
 			$targetImage = $targetImage->getGdImage();
 		}
-		/** @var GdImage $targetImage */
 		imagecopy($targetImage, $this->resource, $offsetX, $offsetY, 0, 0, $this->getWidth(), $this->getHeight());
 		return $this;
 	}
@@ -435,9 +425,6 @@ class Image {
 			}
 		}
 
-		if(PHP_VERSION_ID < 80000) {
-			imagedestroy($this->resource);
-		}
 		$this->resource = $dstRes;
 
 		return $this;
@@ -580,9 +567,6 @@ class Image {
 		imagefill($newRes, 0, 0, self::createGdColorFromColor($newRes, $backgroundColor));
 		imagecopy($newRes, $this->resource, $dstOffsetX, $dstOffsetY, $srcOffsetX, $srcOffsetY, $srcWidth, $srcHeight);
 
-		if(PHP_VERSION_ID < 80000) {
-			imagedestroy($this->resource);
-		}
 		$this->resource = $newRes;
 
 		return $this;
@@ -620,20 +604,14 @@ class Image {
 			$h = (int) ImageTools::nonFalse(static fn() => ceil($ca * $b ?: 1));
 			/** @var GdImage $tmp */
 			$tmp = ImageTools::nonFalse(static fn() => imagecreatetruecolor($w, $h));
-			try {
-				for($s = 0; $s < $cb; $s++) {
-					imagecopy($tmp, $copyRes, 0, 0, $s * $b, $s * $a, $w, $h);
-					imagetruecolortopalette($tmp, false, 255);
-					if(imagecolorstotal($tmp) > 1) {
-						return $s;
-					}
-				}
-				return 0;
-			} finally {
-				if(PHP_VERSION_ID < 80000) {
-					imagedestroy($tmp);
+			for($s = 0; $s < $cb; $s++) {
+				imagecopy($tmp, $copyRes, 0, 0, $s * $b, $s * $a, $w, $h);
+				imagetruecolortopalette($tmp, false, 255);
+				if(imagecolorstotal($tmp) > 1) {
+					return $s;
 				}
 			}
+			return 0;
 		};
 
 		$offsetX = $wf($copyRes, 0, 1, $h, $w);
@@ -687,9 +665,6 @@ class Image {
 		imagefill($newResource, 0, 0, self::createGdColorFromColor($this->resource, $backgroundColor));
 		imagecopyresampled($newResource, $this->resource, $intOffsetX, $intOffsetY, 0, 0, $this->getWidth(), $this->getHeight(), $this->getWidth(), $this->getHeight());
 
-		if(PHP_VERSION_ID < 80000) {
-			imagedestroy($this->resource);
-		}
 		$this->resource = $newResource;
 
 		return $this;
@@ -750,9 +725,6 @@ class Image {
 
 		$resource = self::createResource($width, $height);
 		imagecopyresampled($resource, $sourceIm, 0, 0, 0, 0, $width, $height, $this->getWidth(), $this->getHeight());
-		if(PHP_VERSION_ID < 80000) {
-			imagedestroy($this->resource);
-		}
 		$this->resource = $resource;
 
 		return $this;

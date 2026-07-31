@@ -6,6 +6,20 @@ use GdImage;
 use PHPUnit\Framework\TestCase;
 
 class ImageTest extends TestCase {
+	public function testSaveAsStringPngKeepsAlphaWhenUsingImgPngConstant(): void {
+		$image = Image::create(1, 1, Color::whiteTransparent(), IMAGETYPE_PNG);
+		$string = $image->saveAsString(IMAGETYPE_PNG);
+		self::assertStringStartsWith("\x89PNG\r\n\x1a\n", $string);
+		$gd = imagecreatefromstring($string);
+		self::assertNotFalse($gd);
+		$alpha = (imagecolorat($gd, 0, 0) >> 24) & 0x7F;
+		self::assertSame(127, $alpha);
+		
+		$image2 = Image::create(1, 1, Color::whiteTransparent(), IMAGETYPE_PNG);
+		$string2 = $image2->saveAsString();
+		self::assertStringStartsWith("\x89PNG\r\n\x1a\n", $string2);
+	}
+
 	public function testLoadBmpFromFile(): void {
 		$image = Image::loadFromFile(__DIR__.'/images/cat.bmp');
 		self::assertEquals([$image->getWidth(), $image->getHeight()], [4, 4]);

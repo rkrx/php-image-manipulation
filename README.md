@@ -7,7 +7,7 @@ A simple image manipulation library using gd-lib
 composer require rkr/image
 ```
 
-## Usage (PHP 8.2)
+## Usage (PHP 8.1+)
 
 More information is also available in the [generated docs](docs/classes/Kir/Image/Image.md).
 
@@ -95,16 +95,14 @@ All methods throw `Kir\Image\ImageRuntimeException` on invalid input / unsupport
 - `public static function loadFromString(string $data): Image`  
   Loads an image from raw bytes.
 - `public static function loadFromFile(string $filename): Image`  
-  Loads an image from a file path.
+  Loads AVIF, BMP, GIF, JPEG, PNG, WBMP, WebP, XBM, XPM, TGA, GD and GD2 images from a file path. Optional formats must be enabled in the installed GD build.
 - `public static function create(int $width, int $height, ?Color $color = null, ?int $imageType = null): Image`  
   Creates a new blank image (defaults to a transparent white background).
 
 ### Object lifecycle
 
 - `public function __construct(\GdImage $resource, ?int $type = null)`  
-  Wraps an existing GD image resource/object (prefer `loadFromFile()` / `create()` if possible).
-- `public function __destruct(): void`  
-  Frees the underlying GD resource on PHP < 8.0.
+  Wraps an existing GD image object (prefer `loadFromFile()` / `create()` if possible).
 
 ### Basic information
 
@@ -126,7 +124,7 @@ All methods throw `Kir\Image\ImageRuntimeException` on invalid input / unsupport
 - `public function placeImageOn(Image|\GdImage $targetImage, int $offsetX = 0, int $offsetY = 0): self`  
   Deprecated alias for `pasteOn()`.
 - `public function pasteOn(Image|\GdImage $targetImage, int $offsetX = 0, int $offsetY = 0): self`  
-  Copies this image onto the given target (also accepts a GD resource on PHP < 8.0).
+  Copies this image onto the given target.
 
 ### Pixel inspection
 

@@ -141,9 +141,9 @@ All methods throw `Kir\Image\ImageRuntimeException` on invalid input / unsupport
 - `public function greyscale(): self`  
   Applies `IMG_FILTER_GRAYSCALE`.
 - `public function applyAlphaMaskFromGreyscaleImage(Image $mask): self`  
-  Uses a greyscale mask’s channel value as alpha for the current image.
+  Uses a same-sized greyscale mask’s channel value as alpha for the current image.
 - `public function adjustColors(): self`  
-  Stretches colors to fill the full 0..255 range.
+  Stretches colors to fill the full 0..255 range; constant-color images remain unchanged.
 
 ### Auto-crop / content detection
 

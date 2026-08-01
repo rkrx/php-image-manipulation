@@ -15,7 +15,7 @@ class ImageCalculator {
 			$targHeight = (int) round($targWidth / $origWidth * $origHeight);
 		} elseif($targWidth === null && $targHeight !== null) {
 			$targWidth = (int) round($targHeight / $origHeight * $origWidth);
-		} elseif($targWidth === null && $targHeight === null) {
+		} elseif($targWidth === null) {
 			// No new width and height given. Retain measures as is as if resize was commanded with original width and height.
 			return [$origWidth, $origHeight];
 		}
@@ -68,7 +68,7 @@ class ImageCalculator {
 			$targHeight = (int) round($targWidth / $origWidth * $origHeight);
 		} elseif($targWidth === null && $targHeight !== null) {
 			$targWidth = (int) round($targHeight / $origHeight * $origWidth);
-		} elseif($targWidth === null && $targHeight === null) {
+		} elseif($targWidth === null) {
 			// No new width and height given. Retain measures as is as if resize was commanded with original width and height.
 			return [$origWidth, $origHeight];
 		}
@@ -91,8 +91,6 @@ class ImageCalculator {
 			}
 		}
 		
-		/** @var int $finalW */
-		/** @var int $finalH */
 		return [$finalW, $finalH];
 	}
 }

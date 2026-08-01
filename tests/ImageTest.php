@@ -79,6 +79,20 @@ class ImageTest extends TestCase {
 		$image = Image::create(500, 500);
 		self::assertEquals([$image->getWidth(), $image->getHeight()], [500, 500]);
 	}
+
+	public function testCreateRejectsZeroSizedImage(): void {
+		$this->expectException(ImageRuntimeException::class);
+		$this->expectExceptionMessage('Image width and height must be greater than zero');
+
+		Image::create(0, 1);
+	}
+
+	public function testColorConstructorRejectsOutOfRangeChannel(): void {
+		$this->expectException(ColorRuntimeException::class);
+		$this->expectExceptionMessage('The value for red must be between 0 and 255');
+
+		new Color(256, 0, 0, 255);
+	}
 	
 	public function testGetImageObject(): void {
 		$image = Image::create(500, 500);
@@ -99,6 +113,36 @@ class ImageTest extends TestCase {
 			$expectedValues = ['left' => 4, 'top' => 8, 'bottom' => 8, 'right' => 16, 'width' => 12, 'height' => 16];
 			self::assertEquals($expectedValues, $values);
 		}
+	}
+
+	public function testAdjustColorsLeavesSolidImageUnchanged(): void {
+		$image = Image::create(2, 2, Color::fromRGB(64, 64, 64));
+
+		self::assertSame($image, $image->adjustColors());
+		self::assertSame(64, $image->getRedColorAt(0, 0));
+		self::assertSame(64, $image->getGreenColorAt(0, 0));
+		self::assertSame(64, $image->getBlueColorAt(0, 0));
+	}
+
+	/**
+	 * @dataProvider provideMismatchedMaskSizes
+	 */
+	public function testApplyAlphaMaskRejectsMismatchedMaskSize(int $width, int $height): void {
+		$image = Image::create(2, 2);
+		$mask = Image::create($width, $height);
+
+		$this->expectException(ImageRuntimeException::class);
+		$this->expectExceptionMessage('The mask image must have the same size as the source image');
+
+		$image->applyAlphaMaskFromGreyscaleImage($mask);
+	}
+
+	/**
+	 * @return iterable<string, array{int, int}>
+	 */
+	public function provideMismatchedMaskSizes(): iterable {
+		yield 'different width' => [1, 2];
+		yield 'different height' => [2, 1];
 	}
 	
 	public function testResizeProportional(): void {

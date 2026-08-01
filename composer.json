@@ -13,7 +13,8 @@
 	},
 	"require-dev": {
 		"phpunit/phpunit": "^9.5",
-		"saggre/phpdocumentor-markdown": "0.1.3"
+		"saggre/phpdocumentor-markdown": "0.1.3",
+		"phpstan/phpstan": ">=0.1"
 	},
 	"suggest": {
 		"ext-exif": "For automatic detection of image formats"

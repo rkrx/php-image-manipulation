@@ -405,22 +405,32 @@ class Image {
 	 *
 	 * @param Image $mask The grey scale mask image.
 	 * @return $this The new image.
+	 * @throws ImageRuntimeException If the mask size differs from the image size.
 	 */
 	public function applyAlphaMaskFromGreyscaleImage(Image $mask): self {
+		$w = $this->getWidth();
+		$h = $this->getHeight();
+		if($mask->getWidth() !== $w || $mask->getHeight() !== $h) {
+			throw new ImageRuntimeException('The mask image must have the same size as the source image');
+		}
+
 		$maskIm = $mask->getCopy();
 		$maskIm->greyscale();
 		$maskRes = $maskIm->getGdImage();
 		$srcRes = $this->resource;
-		$w = $this->getWidth();
-		$h = $this->getHeight();
 		$dstRes = self::createResource($w, $h, Color::fromRGBA(0, 0, 0, 0));
 
 		for($y = 0; $y < $h; $y++) {
 			for($x = 0; $x < $w; $x++) {
 				$alphaColor = 127 - ((imagecolorat($maskRes, $x, $y) & 0xFF) >> 1);
 				$color = imagecolorat($srcRes, $x, $y);
-				/** @var int $c */
-				$c = imagecolorallocatealpha($dstRes, ($color >> 16) & 255, ($color >> 8) & 255, $color & 255, $alphaColor);
+				$c = ImageTools::nonFalse(static fn() => imagecolorallocatealpha(
+					$dstRes,
+					($color >> 16) & 255,
+					($color >> 8) & 255,
+					$color & 255,
+					$alphaColor
+				));
 				imagesetpixel($dstRes, $x, $y, $c);
 			}
 		}
@@ -460,6 +470,10 @@ class Image {
 			}
 		}
 
+		if($cMin === $cMax) {
+			return $this;
+		}
+
 		$f = 255 / ($cMax - $cMin);
 
 		for($y = 0; $y < $h; $y++) {
@@ -469,14 +483,16 @@ class Image {
 				$r = ($color >> 16) & 255;
 				$g = ($color >> 8) & 255;
 				$b = $color & 255;
-				$c = imagecolorallocatealpha(
+				$adjustedRed = max(0, min(255, (int) (($r - $cMin) * $f)));
+				$adjustedGreen = max(0, min(255, (int) (($g - $cMin) * $f)));
+				$adjustedBlue = max(0, min(255, (int) (($b - $cMin) * $f)));
+				$c = ImageTools::nonFalse(static fn() => imagecolorallocatealpha(
 					$res,
-					(int) (($r - $cMin) * $f),
-					(int) (($g - $cMin) * $f),
-					(int) (($b - $cMin) * $f),
+					$adjustedRed,
+					$adjustedGreen,
+					$adjustedBlue,
 					$a
-				);
-				/** @var int $c */
+				));
 				imagesetpixel($res, $x, $y, $c);
 			}
 		}
@@ -599,10 +615,9 @@ class Image {
 		imagefilter($copyRes, IMG_FILTER_BRIGHTNESS, $threshold);
 		imagetruecolortopalette($copyRes, false, 255);
 
-		$wf = static function ($copyRes, $a, $b, int $ca, int $cb) {
-			$w = (int) ImageTools::nonFalse(static fn() => ceil($ca * $a ?: 1));
-			$h = (int) ImageTools::nonFalse(static fn() => ceil($ca * $b ?: 1));
-			/** @var GdImage $tmp */
+		$wf = static function (GdImage $copyRes, int $a, int $b, int $ca, int $cb): int {
+			$w = max(1, $ca * $a);
+			$h = max(1, $ca * $b);
 			$tmp = ImageTools::nonFalse(static fn() => imagecreatetruecolor($w, $h));
 			for($s = 0; $s < $cb; $s++) {
 				imagecopy($tmp, $copyRes, 0, 0, $s * $b, $s * $a, $w, $h);
@@ -1003,7 +1018,7 @@ class Image {
 				$baselineX = $x;
 				$baselineY = $y;
 				$gdColor = self::createGdColorFromColor($this->resource, $color);
-				ImageTools::nonFalse(static fn() => imagettftext($this->resource, $fontSize, $angle, $baselineX, $baselineY, $gdColor, $fontFile, $text));
+				ImageTools::nonFalse(fn() => imagettftext($this->resource, $fontSize, $angle, $baselineX, $baselineY, $gdColor, $fontFile, $text));
 				return $this;
 			default:
 				throw new ImageRuntimeException("Unsupported text anchor: {$anchor}");
@@ -1013,7 +1028,7 @@ class Image {
 		$baselineY = (int) round($y + $dy + $m['offsetY']);
 
 		$gdColor = self::createGdColorFromColor($this->resource, $color);
-		ImageTools::nonFalse(static fn() => imagettftext($this->resource, $fontSize, $angle, $baselineX, $baselineY, $gdColor, $fontFile, $text));
+		ImageTools::nonFalse(fn() => imagettftext($this->resource, $fontSize, $angle, $baselineX, $baselineY, $gdColor, $fontFile, $text));
 		return $this;
 	}
 	
@@ -1197,12 +1212,16 @@ class Image {
 	 * @param int $width The width of the new image.
 	 * @param int $height The height of the new image.
 	 * @return GdImage The new image resource.
+	 * @throws ImageRuntimeException If width or height is less than one.
 	 */
-	private static function createResource(int $width, int $height, ?Color $color = null) {
+	private static function createResource(int $width, int $height, ?Color $color = null): GdImage {
+		if($width < 1 || $height < 1) {
+			throw new ImageRuntimeException('Image width and height must be greater than zero');
+		}
+
 		if($color === null) {
 			$color = Color::whiteTransparent();
 		}
-		/** @var GdImage $resource */
 		$resource = ImageTools::nonFalse(static fn() => imagecreatetruecolor($width, $height));
 		imagealphablending($resource, false);
 		imagefill($resource, 0, 0, self::createGdColorFromColor($resource, $color));
@@ -1218,7 +1237,7 @@ class Image {
 	 * @param Color $color The color to create.
 	 * @return int The color code.
 	 */
-	private static function createGdColorFromColor($resource, Color $color): int {
+	private static function createGdColorFromColor(GdImage $resource, Color $color): int {
 		$red = $color->getRed();
 		$green = $color->getGreen();
 		$blue = $color->getBlue();

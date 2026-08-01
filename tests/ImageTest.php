@@ -171,6 +171,32 @@ class ImageTest extends TestCase {
 		self::assertSame(0, $image->getAlphaAt($image->getWidth() - 1, 0));
 	}
 
+	public function testRotateNormalizesAnglesAndUsesCustomBackground(): void {
+		$image = Image::create(2, 1, Color::fromRGB(255, 0, 0));
+		$image->rectangle(1, 0, 1, 1, Color::fromRGB(0, 0, 255));
+		$resource = $image->getGdImage();
+
+		self::assertSame($image, $image->rotate(360));
+		self::assertSame($resource, $image->getGdImage());
+		$image->rotate(-270);
+		self::assertSame([1, 2], [$image->getWidth(), $image->getHeight()]);
+		self::assertSame([0, 0, 255], [
+			$image->getRedColorAt(0, 0),
+			$image->getGreenColorAt(0, 0),
+			$image->getBlueColorAt(0, 0),
+		]);
+
+		$image = Image::create(2, 2, Color::fromRGB(255, 0, 0));
+		$image->rotate(45, Color::fromRGB(0, 255, 0));
+		$right = $image->getWidth() - 1;
+		self::assertSame([0, 255, 0, 255], [
+			$image->getRedColorAt($right, 0),
+			$image->getGreenColorAt($right, 0),
+			$image->getBlueColorAt($right, 0),
+			$image->getAlphaAt($right, 0),
+		]);
+	}
+
 	public function testFlipModes(): void {
 		$image = Image::create(2, 2, Color::fromRGB(255, 0, 0));
 		$image->rectangle(1, 0, 1, 1, Color::fromRGB(0, 255, 0));
@@ -222,6 +248,35 @@ class ImageTest extends TestCase {
 			$image->getGreenColorAt(1, 0),
 			$image->getBlueColorAt(1, 0),
 		]);
+	}
+
+	public function testCropToCoverUsesCenteredVerticalSourceRegion(): void {
+		$image = Image::create(2, 4, Color::fromRGB(255, 0, 0));
+		$image->rectangle(0, 1, 2, 1, Color::fromRGB(0, 255, 0));
+		$image->rectangle(0, 2, 2, 1, Color::fromRGB(0, 0, 255));
+		$image->rectangle(0, 3, 2, 1, Color::whiteOpaque());
+
+		$image->cropToCover(2, 2);
+		self::assertSame([0, 255, 0], [
+			$image->getRedColorAt(0, 0),
+			$image->getGreenColorAt(0, 0),
+			$image->getBlueColorAt(0, 0),
+		]);
+		self::assertSame([0, 0, 255], [
+			$image->getRedColorAt(0, 1),
+			$image->getGreenColorAt(0, 1),
+			$image->getBlueColorAt(0, 1),
+		]);
+	}
+
+	public function testCropToCoverResamplesImageWithMatchingAspectRatio(): void {
+		$image = Image::create(2, 1, Color::fromRGB(255, 0, 0));
+		$image->rectangle(1, 0, 1, 1, Color::fromRGB(0, 0, 255));
+
+		$image->cropToCover(4, 2);
+		self::assertSame([4, 2], [$image->getWidth(), $image->getHeight()]);
+		self::assertSame(255, $image->getRedColorAt(0, 0));
+		self::assertSame(255, $image->getBlueColorAt(3, 1));
 	}
 
 	public function testCropToCoverRejectsZeroSizedTarget(): void {

@@ -51,11 +51,11 @@ class ImageCalculator {
 	 * @param int|null $targHeight
 	 * @return array{int, int}
 	 */
-	public static function getProprtionalCoverSize(int $origWidth, int $origHeight, ?int $targWidth, ?int $targHeight): array {
-		[$finalW, $finalH] = self::getProprtionalCoverSizeF($origWidth, $origHeight, $targWidth, $targHeight);
+	public static function getProportionalCoverSize(int $origWidth, int $origHeight, ?int $targWidth, ?int $targHeight): array {
+		[$finalW, $finalH] = self::getProportionalCoverSizeF($origWidth, $origHeight, $targWidth, $targHeight);
 		return [(int) $finalW, (int) $finalH];
 	}
-	
+
 	/**
 	 * @param int $origWidth
 	 * @param int $origHeight
@@ -63,7 +63,7 @@ class ImageCalculator {
 	 * @param int|null $targHeight
 	 * @return array{float, float}
 	 */
-	public static function getProprtionalCoverSizeF(int $origWidth, int $origHeight, ?int $targWidth, ?int $targHeight): array {
+	public static function getProportionalCoverSizeF(int $origWidth, int $origHeight, ?int $targWidth, ?int $targHeight): array {
 		if($targWidth !== null && $targHeight === null) {
 			$targHeight = (int) round($targWidth / $origWidth * $origHeight);
 		} elseif($targWidth === null && $targHeight !== null) {
@@ -92,5 +92,25 @@ class ImageCalculator {
 		}
 		
 		return [$finalW, $finalH];
+	}
+
+	/**
+	 * Deprecated misspelled alias. Use {@see self::getProportionalCoverSize()} instead.
+	 *
+	 * @deprecated Use {@see self::getProportionalCoverSize()} instead.
+	 * @return array{int, int}
+	 */
+	public static function getProprtionalCoverSize(int $origWidth, int $origHeight, ?int $targWidth, ?int $targHeight): array {
+		return self::getProportionalCoverSize($origWidth, $origHeight, $targWidth, $targHeight);
+	}
+
+	/**
+	 * Deprecated misspelled alias. Use {@see self::getProportionalCoverSizeF()} instead.
+	 *
+	 * @deprecated Use {@see self::getProportionalCoverSizeF()} instead.
+	 * @return array{float, float}
+	 */
+	public static function getProprtionalCoverSizeF(int $origWidth, int $origHeight, ?int $targWidth, ?int $targHeight): array {
+		return self::getProportionalCoverSizeF($origWidth, $origHeight, $targWidth, $targHeight);
 	}
 }

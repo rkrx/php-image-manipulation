@@ -6,6 +6,33 @@ use Kir\Image\Tools\ImageCalculator;
 use PHPUnit\Framework\TestCase;
 
 class ImageCalculatorTest extends TestCase {
+	/**
+	 * @dataProvider provideProportionalSizes
+	 */
+	public function testGetProportionalSize(
+		int $originalWidth,
+		int $originalHeight,
+		?int $targetWidth,
+		?int $targetHeight,
+		array $expected
+	): void {
+		self::assertSame(
+			$expected,
+			ImageCalculator::getProportionalSize($originalWidth, $originalHeight, $targetWidth, $targetHeight)
+		);
+	}
+
+	/**
+	 * @return iterable<string, array{int, int, int|null, int|null, array{int, int}}>
+	 */
+	public function provideProportionalSizes(): iterable {
+		yield 'width only' => [4, 2, 8, null, [8, 4]];
+		yield 'height only' => [4, 2, null, 4, [8, 4]];
+		yield 'no target' => [4, 2, null, null, [4, 2]];
+		yield 'landscape target limited by height' => [4, 3, 10, 4, [5, 4]];
+		yield 'portrait target limited by width' => [3, 4, 4, 10, [4, 5]];
+	}
+
 	public function testGetProportionalCoverSizeF(): void {
 		$originalImageW = 4;
 		$originalImageH = 3;

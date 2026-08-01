@@ -882,16 +882,15 @@ class Image {
 		$origWidth = $this->getWidth();
 		$origHeight = $this->getHeight();
 
-		if($origWidth <= $width && $origHeight <= $height) {
-			return $this;
-		}
-
 		[$targetWidth, $targetHeight] = ImageCalculator::getProportionalSize(
 			$origWidth,
 			$origHeight,
 			$width,
 			$height
 		);
+		if($targetWidth >= $origWidth && $targetHeight >= $origHeight) {
+			return $this;
+		}
 
 		return $this->resize($targetWidth, $targetHeight);
 	}
@@ -948,13 +947,19 @@ class Image {
 	 * @return $this The new image.
 	 */
 	public function enlargeProportional(?int $width = null, ?int $height = null): self {
-		$w = $width ?? $this->getWidth();
-		$h = $height ?? $this->getHeight();
-		
-		if($w < $this->getWidth() || $h < $this->getHeight()) {
-			$this->resizeProportional($w, $h);
+		$origWidth = $this->getWidth();
+		$origHeight = $this->getHeight();
+		[$targetWidth, $targetHeight] = ImageCalculator::getProportionalSize(
+			$origWidth,
+			$origHeight,
+			$width,
+			$height
+		);
+
+		if($targetWidth > $origWidth || $targetHeight > $origHeight) {
+			$this->resize($targetWidth, $targetHeight);
 		}
-		
+
 		return $this;
 	}
 

@@ -80,6 +80,59 @@ The file extension of the image determined by using mime_content_type.
 
 ***
 
+### supportsFormat
+
+Checks whether the installed GD build and this library support reading or writing a format.
+
+```php
+public static supportsFormat(int|string $format, bool $forWriting = false): bool
+```
+
+Formats can be specified as IMAGETYPE_* constants or extensions such as "png", "jpg" or "tga".
+
+* This method is **static**.
+
+
+
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$format` | **int&#124;string** | An IMAGETYPE_* constant or file extension. |
+| `$forWriting` | **bool** | Check output support instead of input support. |
+
+
+
+
+***
+
+### getSupportedFormats
+
+Returns canonical format names supported for reading or writing by the installed GD build and this library.
+
+```php
+public static getSupportedFormats(bool $forWriting = false): list&lt;string&gt;
+```
+
+
+
+* This method is **static**.
+
+
+
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$forWriting` | **bool** |  |
+
+
+
+
+***
+
 ### loadFromString
 
 Loads an image from raw bytes using PHP-GD's automatic format detection.
@@ -735,6 +788,67 @@ The current image.
 
 ***
 
+### rotate
+
+Rotates the image anticlockwise around its center. The canvas is expanded to fit the rotated image.
+
+```php
+public rotate(float $angle, \Kir\Image\Color|null $backgroundColor = null): $this
+```
+
+
+
+
+
+
+
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$angle` | **float** | Rotation angle in degrees. |
+| `$backgroundColor` | **\Kir\Image\Color&#124;null** | Color for newly uncovered areas; defaults to transparent white. |
+
+
+**Return Value:**
+
+The current image.
+
+
+
+***
+
+### flip
+
+Flips the image horizontally, vertically or in both directions.
+
+```php
+public flip(int $mode = IMG_FLIP_HORIZONTAL): $this
+```
+
+
+
+
+
+
+
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$mode` | **int** | One of IMG_FLIP_HORIZONTAL, IMG_FLIP_VERTICAL or IMG_FLIP_BOTH. |
+
+
+**Return Value:**
+
+The current image.
+
+
+
+***
+
 ### crop
 
 Remove excess white space around the image.
@@ -932,6 +1046,37 @@ $im->resize(100, 100); // Image will be forcefully resampled into 100x100 pixels
 **Return Value:**
 
 This instance with a new image resource.
+
+
+
+***
+
+### cropToCover
+
+Resamples and center-crops the image so it completely covers the exact target size.
+
+```php
+public cropToCover(int $width, int $height): $this
+```
+
+
+
+
+
+
+
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$width` | **int** | Target width in pixels. |
+| `$height` | **int** | Target height in pixels. |
+
+
+**Return Value:**
+
+The current image.
 
 
 
@@ -1479,4 +1624,4 @@ public saveAsString(int|null $imageType = null, int $quality = 100): string
 
 
 ***
-> Automatically generated from source code comments on 2026-07-31 using [phpDocumentor](http://www.phpdoc.org/) and [saggre/phpdocumentor-markdown](https://github.com/Saggre/phpDocumentor-markdown)
+> Automatically generated from source code comments on 2026-08-01 using [phpDocumentor](http://www.phpdoc.org/) and [saggre/phpdocumentor-markdown](https://github.com/Saggre/phpDocumentor-markdown)

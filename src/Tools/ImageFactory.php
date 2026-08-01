@@ -7,6 +7,18 @@ use Kir\Image\Image;
 use Kir\Image\ImageRuntimeException;
 
 class ImageFactory {
+	/** @var array<string, int> */
+	private const IMAGE_TYPES_BY_FORMAT = [
+		'avif' => IMAGETYPE_AVIF,
+		'bmp' => IMAGETYPE_BMP,
+		'gif' => IMAGETYPE_GIF,
+		'jpeg' => IMAGETYPE_JPEG,
+		'png' => IMAGETYPE_PNG,
+		'wbmp' => IMAGETYPE_WBMP,
+		'webp' => IMAGETYPE_WEBP,
+		'xbm' => IMAGETYPE_XBM,
+	];
+
 	/** @var array<int, string> */
 	private const LOADERS_BY_IMAGE_TYPE = [
 		IMAGETYPE_AVIF => 'imagecreatefromavif',
@@ -31,6 +43,60 @@ class ImageFactory {
 		'tga' => 'imagecreatefromtga',
 		'xpm' => 'imagecreatefromxpm',
 	];
+
+	/**
+	 * Output formats intentionally match Image's public save methods.
+	 *
+	 * @var array<int, string>
+	 */
+	private const WRITERS_BY_IMAGE_TYPE = [
+		IMAGETYPE_BMP => 'imagebmp',
+		IMAGETYPE_GIF => 'imagegif',
+		IMAGETYPE_JPEG => 'imagejpeg',
+		IMAGETYPE_PNG => 'imagepng',
+		IMAGETYPE_WEBP => 'imagewebp',
+	];
+
+	/**
+	 * Checks whether the installed GD build and this library support a format.
+	 * String formats are canonical extensions such as "png", "jpeg" or "tga".
+	 *
+	 * @param int|string $format An IMAGETYPE_* constant or file extension.
+	 * @param bool $forWriting Check output support instead of input support.
+	 */
+	public static function supportsFormat(int|string $format, bool $forWriting = false): bool {
+		if(is_string($format)) {
+			$format = self::normalizeFormatName($format);
+			$imageType = self::IMAGE_TYPES_BY_FORMAT[$format] ?? null;
+			if($imageType !== null) {
+				return self::supportsFormat($imageType, $forWriting);
+			}
+			if($forWriting) {
+				return false;
+			}
+			$function = self::LOADERS_BY_FILE_EXTENSION[$format] ?? null;
+			return $function !== null && function_exists($function);
+		}
+
+		$functions = $forWriting ? self::WRITERS_BY_IMAGE_TYPE : self::LOADERS_BY_IMAGE_TYPE;
+		$function = $functions[$format] ?? null;
+		return $function !== null && function_exists($function);
+	}
+
+	/**
+	 * Returns canonical format names supported by the installed GD build and this library.
+	 *
+	 * @return list<string>
+	 */
+	public static function getSupportedFormats(bool $forWriting = false): array {
+		$formats = [];
+		foreach(array_merge(array_keys(self::IMAGE_TYPES_BY_FORMAT), array_keys(self::LOADERS_BY_FILE_EXTENSION)) as $format) {
+			if(self::supportsFormat($format, $forWriting)) {
+				$formats[] = $format;
+			}
+		}
+		return $formats;
+	}
 
 	/**
 	 * Loads an image using all available image functions
@@ -101,5 +167,10 @@ class ImageFactory {
 			throw new ImageRuntimeException('Unknown image type');
 		}
 		return $imageType;
+	}
+
+	private static function normalizeFormatName(string $format): string {
+		$format = strtolower(ltrim(trim($format), '.'));
+		return $format === 'jpg' ? 'jpeg' : $format;
 	}
 }

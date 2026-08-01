@@ -49,6 +49,26 @@ class Image {
 	}
 
 	/**
+	 * Checks whether the installed GD build and this library support reading or writing a format.
+	 * Formats can be specified as IMAGETYPE_* constants or extensions such as "png", "jpg" or "tga".
+	 *
+	 * @param int|string $format An IMAGETYPE_* constant or file extension.
+	 * @param bool $forWriting Check output support instead of input support.
+	 */
+	public static function supportsFormat(int|string $format, bool $forWriting = false): bool {
+		return ImageFactory::supportsFormat($format, $forWriting);
+	}
+
+	/**
+	 * Returns canonical format names supported for reading or writing by the installed GD build and this library.
+	 *
+	 * @return list<string>
+	 */
+	public static function getSupportedFormats(bool $forWriting = false): array {
+		return ImageFactory::getSupportedFormats($forWriting);
+	}
+
+	/**
 	 * Loads an image from raw bytes using PHP-GD's automatic format detection.
 	 *
 	 * Example:
@@ -501,6 +521,53 @@ class Image {
 	}
 
 	/**
+	 * Rotates the image anticlockwise around its center. The canvas is expanded to fit the rotated image.
+	 *
+	 * @param float $angle Rotation angle in degrees.
+	 * @param Color|null $backgroundColor Color for newly uncovered areas; defaults to transparent white.
+	 * @return $this The current image.
+	 * @throws ImageRuntimeException If the angle is not finite or GD cannot rotate the image.
+	 */
+	public function rotate(float $angle, ?Color $backgroundColor = null): self {
+		if(!is_finite($angle)) {
+			throw new ImageRuntimeException('Rotation angle must be finite');
+		}
+
+		$angle = fmod($angle, 360.0);
+		if($angle < 0) {
+			$angle += 360.0;
+		}
+		if($angle === 0.0) {
+			return $this;
+		}
+
+		$backgroundColor = $backgroundColor ?? Color::whiteTransparent();
+		$background = self::createGdColorFromColor($this->resource, $backgroundColor);
+		$rotated = ImageTools::nonFalse(fn() => imagerotate($this->resource, $angle, $background));
+		imagealphablending($rotated, true);
+		imagesavealpha($rotated, true);
+		$this->resource = $rotated;
+
+		return $this;
+	}
+
+	/**
+	 * Flips the image horizontally, vertically or in both directions.
+	 *
+	 * @param int $mode One of IMG_FLIP_HORIZONTAL, IMG_FLIP_VERTICAL or IMG_FLIP_BOTH.
+	 * @return $this The current image.
+	 * @throws ImageRuntimeException If the flip mode is invalid.
+	 */
+	public function flip(int $mode = IMG_FLIP_HORIZONTAL): self {
+		if(!in_array($mode, [IMG_FLIP_HORIZONTAL, IMG_FLIP_VERTICAL, IMG_FLIP_BOTH], true)) {
+			throw new ImageRuntimeException('Invalid image flip mode');
+		}
+
+		imageflip($this->resource, $mode);
+		return $this;
+	}
+
+	/**
 	 * Remove excess white space around the image.
 	 *
 	 * The threshold value is the value of which a non-white color will be still treated as white. A threshold value of
@@ -740,6 +807,54 @@ class Image {
 
 		$resource = self::createResource($width, $height);
 		imagecopyresampled($resource, $sourceIm, 0, 0, 0, 0, $width, $height, $this->getWidth(), $this->getHeight());
+		$this->resource = $resource;
+
+		return $this;
+	}
+
+	/**
+	 * Resamples and center-crops the image so it completely covers the exact target size.
+	 *
+	 * @param int $width Target width in pixels.
+	 * @param int $height Target height in pixels.
+	 * @return $this The current image.
+	 * @throws ImageRuntimeException If width or height is less than one.
+	 */
+	public function cropToCover(int $width, int $height): self {
+		if($width < 1 || $height < 1) {
+			throw new ImageRuntimeException('Image width and height must be greater than zero');
+		}
+
+		$sourceWidth = $this->getWidth();
+		$sourceHeight = $this->getHeight();
+		$sourceRatio = $sourceWidth / $sourceHeight;
+		$targetRatio = $width / $height;
+		$sourceX = 0;
+		$sourceY = 0;
+		$cropWidth = $sourceWidth;
+		$cropHeight = $sourceHeight;
+
+		if($sourceRatio > $targetRatio) {
+			$cropWidth = max(1, min($sourceWidth, (int) round($sourceHeight * $targetRatio)));
+			$sourceX = intdiv($sourceWidth - $cropWidth, 2);
+		} elseif($sourceRatio < $targetRatio) {
+			$cropHeight = max(1, min($sourceHeight, (int) round($sourceWidth / $targetRatio)));
+			$sourceY = intdiv($sourceHeight - $cropHeight, 2);
+		}
+
+		$resource = self::createResource($width, $height);
+		imagecopyresampled(
+			$resource,
+			$this->resource,
+			0,
+			0,
+			$sourceX,
+			$sourceY,
+			$width,
+			$height,
+			$cropWidth,
+			$cropHeight
+		);
 		$this->resource = $resource;
 
 		return $this;

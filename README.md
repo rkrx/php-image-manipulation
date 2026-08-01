@@ -92,6 +92,8 @@ All methods throw `Kir\Image\ImageRuntimeException` on invalid input / unsupport
   Detects the image type constant (e.g. `IMAGETYPE_PNG`) for a file.
 - `public static function getDefaultImageExtension(string $filename): ?string`  
   Returns a default extension (e.g. `"png"`) detected via `mime_content_type`.
+- `public static function supportsFormat(int|string $format, bool $forWriting = false): bool`: Checks runtime read support by `IMAGETYPE_*` or extension; set `$forWriting` for the library’s output formats.
+- `public static function getSupportedFormats(bool $forWriting = false): array`: Returns canonical names for the formats supported by the current GD build and this library.
 - `public static function loadFromString(string $data): Image`  
   Loads an image from raw bytes.
 - `public static function loadFromFile(string $filename): Image`  
@@ -145,6 +147,11 @@ All methods throw `Kir\Image\ImageRuntimeException` on invalid input / unsupport
 - `public function adjustColors(): self`  
   Stretches colors to fill the full 0..255 range; constant-color images remain unchanged.
 
+### Geometric transformations
+
+- `public function rotate(float $angle, ?Color $backgroundColor = null): self`: Rotates anticlockwise, expands the canvas and uses transparent white for uncovered areas by default.
+- `public function flip(int $mode = IMG_FLIP_HORIZONTAL): self`: Flips using `IMG_FLIP_HORIZONTAL`, `IMG_FLIP_VERTICAL` or `IMG_FLIP_BOTH`.
+
 ### Auto-crop / content detection
 
 - `public function crop(int $threshold = 15, int $borderPercent = 0, ?Color $backgroundColor = null): self`  
@@ -163,6 +170,7 @@ All methods throw `Kir\Image\ImageRuntimeException` on invalid input / unsupport
 
 - `public function resize(?int $width = null, ?int $height = null): self`  
   Resamples to exact size (non-proportional); omitted dimensions keep current size.
+- `public function cropToCover(int $width, int $height): self`: Resamples and center-crops to cover the exact target dimensions.
 - `public function shrinkProportional(?int $width = null, ?int $height = null): self`  
   Only shrinks if the image is larger than the target rectangle.
 - `public function resizeProportional(?int $width = null, ?int $height = null): self`  
